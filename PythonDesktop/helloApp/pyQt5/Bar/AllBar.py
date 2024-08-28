@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QTextEdit, QAction, QApplication, QWidget
 from PyQt5.QtGui import QIcon
 
-name_image_exit = 'exit.jpg'
+name_image_exit = '../images/exit.jpg'
 
 class Example(QMainWindow):
 
