@@ -12,13 +12,16 @@ class Example(QWidget):
 
     def initUI(self):
 
+        # Этот статический метод устанавливает шрифт, используемый для отображения подсказки. Мы используем шрифт 10px SansSerif.
         QToolTip.setFont(QFont('SansSerif', 10))
 
+        # Чтобы создать всплывающую подсказку, мы вызываем метод setToolTip(). Мы можем использовать форматирование текста.
         self.setToolTip('This is a <b>QWidget</b> widget')
 
-
+        # Мы создаем виджет кнопки и устанавливаем подсказку для него.
         btn = QPushButton('Button', self)
         btn.setToolTip('This is a <b>QPushButton</b> widget')
+        # Меняем размер кнопки и перемещаем относительно окна. Метод sizeHint() дает рекомендуемый размер для кнопки.
         btn.resize(btn.sizeHint())
         btn.move(50,50)
 
