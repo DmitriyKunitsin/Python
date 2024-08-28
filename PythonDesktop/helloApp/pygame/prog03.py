@@ -12,6 +12,7 @@ window = pygame.display.set_mode((width, height))
 pygame.display.set_caption('Fractal Tree')
 screen = pygame.display.get_surface()
 
+
 def Fractal_Tree(x1, y1, theta, depth):
     if depth:
         rand_lenght = random.randint(1,10)
