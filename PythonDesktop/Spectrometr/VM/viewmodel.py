@@ -1,5 +1,5 @@
 from PyQt5.QtCore import pyqtSignal, QObject
-from model import DataModel
+from M.model import DataModel
 
 class ViewModel(QObject):
     data_changed = pyqtSignal(list)

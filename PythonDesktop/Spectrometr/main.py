@@ -1,8 +1,11 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from view import MainWindow
-from viewmodel import ViewModel
 
+try:
+    from V.view import MainWindow
+    from VM.viewmodel import ViewModel
+except ImportError as e:
+    print(f'Ошибка импорта: {e}')
 def main():
     app = QApplication(sys.argv)
     view_model = ViewModel()
