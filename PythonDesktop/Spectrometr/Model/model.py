@@ -11,6 +11,7 @@ class DataMode(QObject):
         self.serial_port.data_received.connect(self.on_data_received)
 
     def read_data(self, value_sleep):
+        print('read_data')
         self.serial_port.start_reading(value_sleep) # Запуск чтения данных
 
 
@@ -23,7 +24,7 @@ class DataMode(QObject):
         return self.serial_port.devices
     
     def select_device(self, name_port, baud):
-        print('TEST')
+        print('select_device')
         self.serial_port.input_selected_port(name_port)
         self.serial_port.input_selected_baudrate(baud)
         self.serial_port.read_uart()

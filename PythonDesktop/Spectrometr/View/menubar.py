@@ -1,7 +1,10 @@
 from PyQt5.QtWidgets import QMenuBar, QAction, qApp
 from PyQt5.QtGui import QIcon
-from View.ConnectWIndow import ConnectWindow
+# View folder
+from View.ConnectWindow.ConnectWIndow import ConnectWindow
 
+# Setting folder
+from View.SettingMenuBar.SettingCommandUartWindow import Setting_Command
 # imgages
 from PIL import Image
 
@@ -33,7 +36,7 @@ class CustomMenuBar(QMenuBar):
         
         file_menu.addAction(exit_action)
 
-        connect_menu = self.addMenu('Девайсы')
+        connect_menu = self.addMenu('Device')
 
         # # Загрузка и изменение размера изображения
         # image = Image.open(connect_file_name_jpg)
@@ -46,7 +49,20 @@ class CustomMenuBar(QMenuBar):
 
         connect_menu.addAction(connect_action)
 
+        setting_menu = self.addMenu('Setting')
+
+        setting_uart_command = QAction(QIcon(), 'Настройки платы', self)
+        setting_uart_command.setStatusTip('Отправка настроек плате')
+        setting_uart_command.triggered.connect(self.open_setting_command_for_stm)
+
+        setting_menu.addAction(setting_uart_command)
+
     def open_connect_window(self):
         self.connect_window = ConnectWindow(self.view_model)
         self.connect_window.show()
+    
+    def open_setting_command_for_stm(self):
+        self.connect_setting_command = Setting_Command(self.view_model)
+        self.connect_setting_command.show()
+
 

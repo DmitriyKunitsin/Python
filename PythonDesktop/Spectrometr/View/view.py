@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel , QComboBox, QMainWindow, QStatusBar, QProgressBar
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel , QComboBox, QMainWindow, QStatusBar, QProgressBar, QSpinBox
 # ViewModel folder
 from ViewModel.viewmodel import ViewModel
 # View folder
@@ -15,6 +15,7 @@ class MainWindow(QMainWindow):
         # Инициализация ViewModel
         self.viewmodel = ViewModel()
         self.viewmodel.data_changed.connect(self.update_label)
+        self.value_sleep = 0
         self.initUI()
         
 
@@ -49,22 +50,23 @@ class MainWindow(QMainWindow):
         self.plot_widget = PlotWindow()
         self.layout.addWidget(self.plot_widget)
 
-
-
-        self.setLayout(self.layout)
+        # self.setLayout(self.layout)
         
 
-    def get_data(self):
-        self.created_progress_bar(100)
+    def get_data(self):## отправили команду
         self.viewmodel.fetch_data(self.value_sleep)  # Запрос данных из ViewModel
 
-    def update_label(self, data):
+    def update_label(self, data): ## Пришли данные
+        self.created_progress_bar(100)
+        # self.value_sleep = 100
+        # self.progress_bar = CustomProgressBar(self)
         # self.label.setText(f"Полученные данные: {data}")
         self.plot_widget.plot_data(data)
 
 
     def created_progress_bar(self, value_sleep):
         self.value_sleep = value_sleep
+        print(f'self.value_sleep = value_sleep : {self.value_sleep}')
         # Прогресс бар под графиков, показывающий прогресс до обновления
         self.progress_bar = CustomProgressBar(self)
         self.layout.addWidget(self.progress_bar)

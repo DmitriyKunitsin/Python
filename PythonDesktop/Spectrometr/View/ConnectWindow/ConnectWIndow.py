@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QMainWindow, QComboBox
-from View.device_selector import DeviceSelector
+from View.ConnectWindow.device_selector import DeviceSelector
 
 
 class ConnectWindow(QWidget):

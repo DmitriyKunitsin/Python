@@ -16,8 +16,9 @@ class SerialPort(QObject):
 
     def start_reading(self, value_sleep):
         # Имитация асинхронного чтения данных
-        # time.sleep(1)  # Задержка для имитации чтения
-        self.read_uart(value_sleep)
+        # time.sleep(float(value_sleep))
+        numbers = np.random.randint(1, 1701, size=255).tolist()
+        self.data_received.emit(numbers) # Отправляем данные на сигнал
     
     def list_ports(self):
         ports = serial.tools.list_ports.comports()
@@ -35,7 +36,7 @@ class SerialPort(QObject):
     def input_selected_baudrate(self, baud):
         self.selected_baudrate = int(baud)
 
-    def read_uart(self, value_sleep):
+    def read_uart(self):
         # with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1) as ser:
             print(f"Подключено к {self.selected_port}. введенная скорость = {self.selected_baudrate} Начинаем чтение данных...")
             # while True:

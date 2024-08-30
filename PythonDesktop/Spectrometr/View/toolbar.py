@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QAction, qApp, QToolBar
 from PyQt5.QtGui import QIcon
-from View.ConnectWIndow import ConnectWindow
+from View.ConnectWindow.ConnectWIndow import ConnectWindow
 import os
 
 exit_file_name_jpg = 'images/exit.jpg'
