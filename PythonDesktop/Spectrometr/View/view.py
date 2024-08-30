@@ -1,9 +1,9 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel , QComboBox, QMainWindow, QStatusBar
-from viewmodel import ViewModel
-from menubar import CustomMenuBar
-from toolbar import CustomToolBar
-from PlotWindow import PlotWindow
+from ViewModel.viewmodel import ViewModel
+from View.menubar import CustomMenuBar
+from View.toolbar import CustomToolBar
+from View.PlotWindow import PlotWindow
 
 class MainWindow(QMainWindow):
     def __init__(self):
