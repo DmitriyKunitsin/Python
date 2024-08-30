@@ -4,36 +4,31 @@ import usb.util
 # Работа с UART
 import serial
 from M.serial_port import SerialPort
+from PyQt5.QtCore import pyqtSignal, QObject
 
-class DataModel:
+class DataModel(QObject):
+    data_update = pyqtSignal(list)
     def __init__(self):
+        super().__init__()
         self.data = []
         self.device = None
+        self.serial_port = SerialPort()
+        self.serial_port.data_received.connect(self.on_data_received)
 
     def list_devices(self):
-        dev = SerialPort()
-        dev.list_ports()
-        dev.print_ports()
-        return dev.devices
+        self.serial_port.list_ports()
+        self.serial_port.print_ports()
+        return self.serial_port.devices
 
-        # devices = []
-        # for dev in usb.core.find(find_all=True):
-        #     devices.append({'idVendor': dev.idVendor,
-        #                     'idProduct': dev.idProduct,
-        #                     'name': usb.util.get_string(dev, dev.iProduct) if dev.iProduct else 'Неизвестный девайс'})
-        # return devices
+    def select_device(self, name_port, baud):
+        print('TEST')
+        self.serial_port.input_selected_port(name_port)
+        self.serial_port.input_selected_baudrate(baud)
+        self.serial_port.read_uart()
 
-    def select_device(self, idVendor, idProduct):
-        self.device = usb.core.find(idVendor=idVendor, idProduct=idProduct)
-        if self.device is None:
-            raise ValueError('USB устройство не найдено')
-        self.device.set_configuration()
-
+    def on_data_received(self, data):
+        self.data_update.emit(data)
     def read_data(self):
-        if self.device is None:
-            raise ValueError('USB устройство не выбрано')
-        self.data = list(self.device.read(0x81, 64))  
-        return self.data
+        print('M : self.serial_port.read_uart()')
+        self.serial_port.read_uart()
     
-    def read_data(self):
-        uart = serial.Serial()

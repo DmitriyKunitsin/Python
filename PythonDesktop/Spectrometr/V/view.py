@@ -4,6 +4,7 @@ import pyqtgraph as pg
 from V.menubar import CustomMenuBar
 from V.toolbar import CustomToolBar
 from V.device_selector import DeviceSelector
+from V.PlotWindow import PlotWindow
 
 class MainWindow(QMainWindow):
     def __init__(self, view_model):
@@ -12,7 +13,8 @@ class MainWindow(QMainWindow):
         self.initUI()
         self.selected_device = None
         self.view_model.data_changed.connect(self.update_graph)
-        self.populate_devices()
+
+        # self.populate_devices()
 
     def initUI(self):
         self.setWindowTitle("Spectromетр")
@@ -25,16 +27,17 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(cental_widget)
 
         # Выпадающее окно выбора порта
-        self.device_selector = DeviceSelector(self.view_model)#QComboBox()
-        self.device_selector.device_selected.connect(self.on_device_selected)# Подключаем сигнал
-        layout.addWidget(self.device_selector)
+        # self.device_selector = DeviceSelector(self.view_model)#QComboBox()
+        # self.device_selector.device_selected.connect(self.on_device_selected)# Подключаем сигнал
+        # layout.addWidget(self.device_selector)
 
-        self.button_selected_device = QPushButton('Подключиться')
-        self.button_selected_device.clicked.connect(self.select_device)
-        layout.addWidget(self.button_selected_device)
+        # self.button_selected_device = QPushButton('Подключиться')
+        # self.button_selected_device.clicked.connect(self.select_device)
+        # layout.addWidget(self.button_selected_device)
 
         # Меню бар (верхние кнопки)
         self.menu_bar = CustomMenuBar(self)
+        self.menu_bar.set_view_model(self.view_model)
         layout.setMenuBar(self.menu_bar)
 
         # статус бар (подсказки внизу слева)
@@ -45,7 +48,7 @@ class MainWindow(QMainWindow):
         self.tool_bar = CustomToolBar()
         self.addToolBar(self.tool_bar)
 
-        self.plot_widget = pg.PlotWidget()
+        self.plot_widget = PlotWindow()
         layout.addWidget(self.plot_widget)
 
         self.button_fetch_data = QPushButton('Получить данные')
@@ -64,12 +67,10 @@ class MainWindow(QMainWindow):
             print('Нет доступных USB устройств')
             self.device_selector.addItem('Нет доступных USB устройств')
             return
-        test = [1,2,4,3]
-        self.device_selector.add_item(test)
+        self.device_selector.add_item(devices)
 
     def select_device(self):
         selected = self.device_selector.get_selected_device()
-        print("Устройство выбрано:", selected)
         if selected:
             # idVendor, idProduct = selected
             try:
@@ -85,5 +86,4 @@ class MainWindow(QMainWindow):
             print(e)
 
     def update_graph(self, data):
-        self.plot_widget.clear()
-        self.plot_widget.plot(data, pen='g')
+        self.plot_widget.plot_data(data)
