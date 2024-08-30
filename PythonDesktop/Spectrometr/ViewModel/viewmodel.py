@@ -10,8 +10,8 @@ class ViewModel(QObject):
         self.model.data_update.connect(self.on_data_received)
 
 
-    def fetch_data(self):
-        self.model.read_data() # Запрос данных из модели
+    def fetch_data(self, value_sleep=1):
+        self.model.read_data(value_sleep) # Запрос данных из модели
 
     def on_data_received(seld,data):
         seld.data_changed.emit(data)

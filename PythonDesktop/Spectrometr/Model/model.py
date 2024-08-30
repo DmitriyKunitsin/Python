@@ -10,8 +10,8 @@ class DataMode(QObject):
         self.serial_port = SerialPort()
         self.serial_port.data_received.connect(self.on_data_received)
 
-    def read_data(self):
-        self.serial_port.start_reading() # Запуск чтения данных
+    def read_data(self, value_sleep):
+        self.serial_port.start_reading(value_sleep) # Запуск чтения данных
 
 
     def on_data_received(self, data):

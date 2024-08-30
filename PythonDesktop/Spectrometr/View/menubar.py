@@ -2,9 +2,13 @@ from PyQt5.QtWidgets import QMenuBar, QAction, qApp
 from PyQt5.QtGui import QIcon
 from View.ConnectWIndow import ConnectWindow
 
+# imgages
+from PIL import Image
+
 import os
 
 exit_file_name_jpg = 'images/exit.jpg'
+connect_file_name_jpg = 'images/connect.jpg'
 
 class CustomMenuBar(QMenuBar):
 
@@ -31,7 +35,12 @@ class CustomMenuBar(QMenuBar):
 
         connect_menu = self.addMenu('Девайсы')
 
-        connect_action = QAction('Подключиться', self)
+        # # Загрузка и изменение размера изображения
+        # image = Image.open(connect_file_name_jpg)
+        # image = image.resize((1024, 1024))  # Задайте нужный размер
+        # image.save('images/resized_image.jpg')  # Сохраните изменённое изображение
+
+        connect_action = QAction(QIcon(connect_file_name_jpg),'Подключиться', self)
         connect_action.setStatusTip('Подключиться к порту')
         connect_action.triggered.connect(self.open_connect_window)
 
