@@ -86,4 +86,5 @@ class MainWindow(QMainWindow):
             print(e)
 
     def update_graph(self, data):
+        print('Вернулись данные из SerialPort : ',data)
         self.plot_widget.plot_data(data)

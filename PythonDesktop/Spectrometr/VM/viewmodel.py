@@ -11,8 +11,8 @@ class ViewModel(QObject):
 
     def fetch_data(self):
         try:
-            print('VM : data = self.model.read_data()')
             data = self.model.read_data()
+            # print(data)
             if data is None:
                 raise ValueError('Данные не были получены (None)')
             self.data_changed.emit(data)
