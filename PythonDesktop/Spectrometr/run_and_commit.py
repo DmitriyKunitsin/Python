@@ -15,6 +15,7 @@ def run_script(script_path):
 
 def git_add_and_commit(commit_message):
     try:
+        subprocess.run(['git', 'status'], check=True)
         subprocess.run(['git', 'add', '.'], check=True)
         subprocess.run(['git', 'commit', '-m', commit_message], check=True)
         print(f"{Colors.BLUE}Изменения успешно добавлены и закоммичены.{Colors.RESET}")
