@@ -22,12 +22,8 @@ def git_add_and_commit(commit_message):
         print(f"{Colors.RED}Ошибка при добавлении или коммите: {e}{Colors.RESET}")
 
 if __name__ == "__main__":
-    # Путь к вашему скрипту
-    script_to_run = 'clear_cached.py'  # Замените на имя вашего скрипта
-
+    script_to_run = 'clear_cached.py'
     run_script(script_to_run)
-
-    # Стандартное сообщение для коммита
     commit_message = "Автоматическое обновление после выполнения скрипта."
 
     git_add_and_commit(commit_message)
