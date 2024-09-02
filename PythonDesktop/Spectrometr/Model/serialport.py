@@ -18,10 +18,10 @@ class SerialPort(QObject):
 
     def start_reading(self, value_sleep):
         # Имитация асинхронного чтения данных
-        # print('sleep = ', value_sleep)
+        print('sleep = ', value_sleep)
         # time.sleep(float(value_sleep))
-        numbers = np.random.randint(1, 1701, size=8191).tolist()
-        self.data_received.emit(numbers) # Отправляем данные на сигнал
+        # numbers = np.random.randint(1, 1701, size=8191).tolist()
+        # self.data_received.emit(numbers) # Отправляем данные на сигнал
     
     def list_ports(self):
         ports = serial.tools.list_ports.comports()
@@ -40,23 +40,45 @@ class SerialPort(QObject):
         self.selected_baudrate = int(baud)
 
     def read_uart(self):
-            # i = 0
-            # self.start_thread_read_ueart()
-        # with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1) as ser:
-            # while True:
-            # while self.running.is_set():
-                print(f"Подключено к {self.selected_port}. введенная скорость = {self.selected_baudrate} Начинаем чтение данных...")
-                # if(i >= 2):
-                #     self.running.clear()
-                #     break
-                # line = ser.readline()
-                # if line:
-                    # data = line.decode('utf-8').strip()
-                numbers = np.random.randint(1, 1701, size=8191).tolist()#list(map(int, data.split('\r\n')))
-                print("Полученны числа:")
-                self.data_received.emit(numbers) # Отправляем данные на сигнал
-                # time.sleep(2)
-                # i+=1
+        print(f"Подключено к {self.selected_port}. Введенная скорость = {self.selected_baudrate}. Начинаем чтение данных...")
+        with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1, bytesize=8, parity='N', stopbits=1) as ser:
+            data_list = []
+            i = 0
+            last_received_time = time.time()
+            timeout_duration = 2 # Время ожидания окончания пакета в секундах
+            while True:
+                if ser.in_waiting > 0:
+                    line = ser.readline()  # Читаем строку
+                    if line:
+                        decoded_line = line.decode('utf-8', errors='ignore').strip()
+                        
+                        if decoded_line.isdigit():
+                            last_received_time = time.time() 
+                            data_list.append(int(decoded_line))
+                # Проверяем таймаут
+                if time.time() - last_received_time > timeout_duration and data_list:
+                    print(f"Получен пакет № {i+1}: {data_list}")
+                    self.data_received.emit(data_list)
+                    i+=1
+                    data_list.clear() # очистка списка
+    # def read_uart(self):
+    #         # i = 0
+    #         # self.start_thread_read_ueart()
+    #     # with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1) as ser:
+    #         # while True:
+    #         # while self.running.is_set():
+    #             print(f"Подключено к {self.selected_port}. введенная скорость = {self.selected_baudrate} Начинаем чтение данных...")
+    #             # if(i >= 2):
+    #             #     self.running.clear()
+    #             #     break
+    #             # line = ser.readline()
+    #             # if line:
+    #                 # data = line.decode('utf-8').strip()
+    #             numbers = np.random.randint(1, 1701, size=8191).tolist()#list(map(int, data.split('\r\n')))
+    #             print("Полученны числа:")
+    #             self.data_received.emit(numbers) # Отправляем данные на сигнал
+    #             # time.sleep(2)
+    #             # i+=1
 
     def start_thread_read_ueart(self):
         if self.running is not None and self.running.is_set():

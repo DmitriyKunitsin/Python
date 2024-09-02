@@ -23,7 +23,7 @@ class CustomProgressBar(QWidget):
         layout.addWidget(self.progress_bar)
         self.timer = QBasicTimer()
         self.step = 0
-        self.doAction() ## !!!!!!!!!!!!!!!! Имитация пришедшего события (якобы по Uart пришли данные), если этого не сделать, то будет ждать команды из вне
+        self.doAction() 
         print('Создан прогресс бар')
 
     def doAction(self):
@@ -32,15 +32,12 @@ class CustomProgressBar(QWidget):
             # self.timer.stop()
             self.close()
         else:
-            self.timer.start(self.max_value_timer,self)
+            self.timer.start(1000,self)# Запуск таймера с интервалом 1 секунда
+            self.progress_bar.setMaximum(int(self.max_value_timer / 1000))
     
     def timerEvent(self, e): ## каждый тик событие
-        if self.step >= self.max_value_timer:
+        if self.step >= self.max_value_timer / 1000:# миллисекунды в секунды
             self.close()
             return
         self.step = self.step + 1
         self.progress_bar.setValue(self.step)
-
-
-
-

@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QObject, pyqtSignal
+import threading as th
 try:
     from Model.serialport import SerialPort
 except ImportError as e:
@@ -29,4 +30,5 @@ class DataMode(QObject):
         print('select_device')
         self.serial_port.input_selected_port(name_port)
         self.serial_port.input_selected_baudrate(baud)
-        self.serial_port.read_uart()
+        th.Thread(daemon=True,target=self.serial_port.read_uart).start()
+        # self.serial_port.read_uart()

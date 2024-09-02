@@ -29,12 +29,12 @@ class MainWindow(QMainWindow):
         self.layout = QVBoxLayout()
         central_widget.setLayout(self.layout)  # Установите макет для центрального виджета
         
-        self.label = QLabel("Нажмите кнопку для получения данных")
-        self.layout.addWidget(self.label)
+        # self.label = QLabel("Нажмите кнопку для получения данных")
+        # self.layout.addWidget(self.label)
         
-        self.button = QPushButton("Получить данные")
-        self.button.clicked.connect(self.get_data)
-        self.layout.addWidget(self.button)
+        # self.button = QPushButton("Получить данные")
+        # self.button.clicked.connect(self.get_data)
+        # self.layout.addWidget(self.button)
         
         # Меню бар (верхние кнопки)
         self.menu_bar = CustomMenuBar(self)
@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
 
     def update_label(self, data): ## Пришли данные
         print('Пришли новые данные через сигнал data_changed')
-        self.created_progress_bar(100)
+        self.created_progress_bar(60000)
         # self.value_sleep = 100
         # self.progress_bar = CustomProgressBar(self)
         # self.label.setText(f"Полученные данные: {data}")

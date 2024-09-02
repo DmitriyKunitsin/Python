@@ -1,20 +1,33 @@
 import serial
 import serial.tools.list_ports
+import time
 
 def list_ports():
     ports = serial.tools.list_ports.comports()
     return [port.device for port in ports]
 
 def read_uart(port, baudrate):
-    print(port)
-    with serial.Serial(port, baudrate, timeout=1) as ser:
-        print(f"Подключено к {port}. введенная скорость = {baudrate} Начинаем чтение данных...")
+    print(f"Подключено к {port}. Введенная скорость = {baudrate}. Начинаем чтение данных...")
+    with serial.Serial(port, baudrate, timeout=1, bytesize=8, parity='N', stopbits=1) as ser:
+        data_list = []
+        i = 0
+        last_received_time = time.time()
+        timeout_duration = 2 # Время ожидания окончания пакета в секундах
         while True:
-            line = ser.readline()
-            if line:
-                data = line.decode('utf-8').strip()
-                numbers = list(map(int, data.split('\r\n')))
-                print("Полученные числа:", numbers)
+            if ser.in_waiting > 0:
+                line = ser.readline()  # Читаем строку
+                if line:
+                    decoded_line = line.decode('utf-8', errors='ignore').strip()
+                    
+                    if decoded_line.isdigit():
+                        last_received_time = time.time() 
+                        data_list.append(int(decoded_line))
+            # Проверяем таймаут
+            if time.time() - last_received_time > timeout_duration and data_list:
+                print(f"Получен пакет № {i+1}: {data_list}")
+                i+=1
+                data_list.clear() # очистка списка
+            
 
 if __name__ == "__main__":
     print("Доступные порты:")
