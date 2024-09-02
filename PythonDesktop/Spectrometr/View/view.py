@@ -1,17 +1,20 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel , QComboBox, QMainWindow, QStatusBar, QProgressBar, QSpinBox
+try:
 # ViewModel folder
-from ViewModel.viewmodel import ViewModel
+    from ViewModel.viewmodel import ViewModel
 # View folder
-from View.menubar import CustomMenuBar
-from View.toolbar import CustomToolBar
-from View.ProgressBar import CustomProgressBar
-from View.PlotWindow import PlotWindow
+    from View.Menubar.menubar import CustomMenuBar
+    from View.toolbar import CustomToolBar
+    from View.ProgressBar import CustomProgressBar
+    from View.PlotWindow import PlotWindow
+except ImportError as e:
+    print(f'Ошибка импорта: {e}')
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Асинхронное чтение данных")
+        self.setWindowTitle("Spektrometr")
         # Инициализация ViewModel
         self.viewmodel = ViewModel()
         self.viewmodel.data_changed.connect(self.update_label)
@@ -57,6 +60,7 @@ class MainWindow(QMainWindow):
         self.viewmodel.fetch_data(self.value_sleep)  # Запрос данных из ViewModel
 
     def update_label(self, data): ## Пришли данные
+        print('Пришли новые данные через сигнал data_changed')
         self.created_progress_bar(100)
         # self.value_sleep = 100
         # self.progress_bar = CustomProgressBar(self)

@@ -1,5 +1,8 @@
 from PyQt5.QtCore import QObject, pyqtSignal
-from Model.serialport import SerialPort
+try:
+    from Model.serialport import SerialPort
+except ImportError as e:
+    print(f'Ошибка импорта: {e}')
 
 class DataMode(QObject):
 
@@ -11,17 +14,16 @@ class DataMode(QObject):
         self.serial_port.data_received.connect(self.on_data_received)
 
     def read_data(self, value_sleep):
-        print('read_data')
+        print('Запрос на получение данных')
         self.serial_port.start_reading(value_sleep) # Запуск чтения данных
-
-
-    def on_data_received(self, data):
-        self.data_update.emit(data)
-
+        
     def list_devices(self):
         self.serial_port.list_ports()
         self.serial_port.print_ports()
         return self.serial_port.devices
+    
+    def on_data_received(self, data):
+        self.data_update.emit(data)
     
     def select_device(self, name_port, baud):
         print('select_device')

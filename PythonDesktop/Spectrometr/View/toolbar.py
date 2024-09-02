@@ -1,6 +1,9 @@
 from PyQt5.QtWidgets import QAction, qApp, QToolBar
 from PyQt5.QtGui import QIcon
-from View.ConnectWindow.ConnectWIndow import ConnectWindow
+try:
+    from View.Menubar.ConnectWindow.ConnectWIndow import ConnectWindow
+except ImportError as e:
+    print(f'Ошибка импорта: {e}')
 import os
 
 exit_file_name_jpg = 'images/exit.jpg'

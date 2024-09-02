@@ -11,8 +11,7 @@ class DeviceSelector(QComboBox):
         self.currentIndexChanged.connect(self.on_device_changed)
 
     def add_item(self, devices):
-        for device in devices:
-            self.addItem(f"{device}", device)  # Добавляем данные устройства как значение элемента
+        self.addItems([f"{device}" for device in devices])  # Добавляем данные устройства как значение элемента
     def on_device_changed(self, index):
         if index >= 0:
             selected_device = self.itemData(index)

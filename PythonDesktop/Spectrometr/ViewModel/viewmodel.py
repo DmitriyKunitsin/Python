@@ -1,5 +1,8 @@
 from PyQt5.QtCore import QObject, pyqtSignal
-from Model.model import DataMode
+try:
+    from Model.model import DataMode
+except ImportError as e:
+    print(f'Ошибка импорта: {e}')
 
 class ViewModel(QObject):
     data_changed = pyqtSignal(list)

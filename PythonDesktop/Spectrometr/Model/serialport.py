@@ -1,5 +1,6 @@
 import time
 import random
+import threading
 import serial
 import serial.tools.list_ports
 import numpy as np
@@ -13,11 +14,13 @@ class SerialPort(QObject):
         self.devices = [None]
         self.selected_port = None
         self.selected_baudrate = None
+        self.running = None
 
     def start_reading(self, value_sleep):
         # Имитация асинхронного чтения данных
+        # print('sleep = ', value_sleep)
         # time.sleep(float(value_sleep))
-        numbers = np.random.randint(1, 1701, size=255).tolist()
+        numbers = np.random.randint(1, 1701, size=8191).tolist()
         self.data_received.emit(numbers) # Отправляем данные на сигнал
     
     def list_ports(self):
@@ -37,13 +40,30 @@ class SerialPort(QObject):
         self.selected_baudrate = int(baud)
 
     def read_uart(self):
+            # i = 0
+            # self.start_thread_read_ueart()
         # with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1) as ser:
-            print(f"Подключено к {self.selected_port}. введенная скорость = {self.selected_baudrate} Начинаем чтение данных...")
             # while True:
+            # while self.running.is_set():
+                print(f"Подключено к {self.selected_port}. введенная скорость = {self.selected_baudrate} Начинаем чтение данных...")
+                # if(i >= 2):
+                #     self.running.clear()
+                #     break
                 # line = ser.readline()
                 # if line:
                     # data = line.decode('utf-8').strip()
-            # time.sleep(float(value_sleep))
-            numbers = np.random.randint(1, 1701, size=255).tolist()#list(map(int, data.split('\r\n')))
-            # print("Полученные числа:", numbers)
-            self.data_received.emit(numbers) # Отправляем данные на сигнал
+                numbers = np.random.randint(1, 1701, size=8191).tolist()#list(map(int, data.split('\r\n')))
+                print("Полученны числа:")
+                self.data_received.emit(numbers) # Отправляем данные на сигнал
+                # time.sleep(2)
+                # i+=1
+
+    def start_thread_read_ueart(self):
+        if self.running is not None and self.running.is_set():
+            print('Чтение уже запущено')
+            return
+        self.running = threading.Event()# Инициализируем событие
+        self.running.set() # Устанавливаем флаг для начала чтения  
+        thread = threading.Thread(target=self.read_uart)
+        # thread.daemon = True
+        thread.start()

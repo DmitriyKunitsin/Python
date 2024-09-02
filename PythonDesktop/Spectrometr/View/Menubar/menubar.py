@@ -1,10 +1,13 @@
 from PyQt5.QtWidgets import QMenuBar, QAction, qApp
 from PyQt5.QtGui import QIcon
-# View folder
-from View.ConnectWindow.ConnectWIndow import ConnectWindow
+try:
+    # View folder
+    from View.Menubar.ConnectWindow.ConnectWIndow import ConnectWindow
 
-# Setting folder
-from View.SettingMenuBar.SettingCommandUartWindow import Setting_Command
+    # Setting folder
+    from View.Menubar.SettingMenuBar.SettingCommandUartWindow import Setting_Command
+except ImportError as e:
+    print(f'Ошибка импорта: {e}')
 # imgages
 from PIL import Image
 
