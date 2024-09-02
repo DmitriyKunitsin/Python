@@ -9,3 +9,4 @@ View/Menubar/ConnectWindow/__pycache__/
 View/Menubar/ConnectWindow/*.pyc
 View/Menubar/SettingMenuBar/__pycache__/*.pyc
 View/Menubar/SettingMenuBar/*.pyc
+venv
