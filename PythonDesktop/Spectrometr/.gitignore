@@ -1,0 +1,11 @@
+# Игнорировать кэш-файлы Python
+__pycache__/
+*.pyc
+View/__pycache__/
+View/*.pyc
+Model/__pycache__/
+Model/*.pyc
+View/Menubar/ConnectWindow/__pycache__/
+View/Menubar/ConnectWindow/*.pyc
+View/Menubar/SettingMenuBar/__pycache__/*.pyc
+View/Menubar/SettingMenuBar/*.pyc

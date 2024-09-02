@@ -15,6 +15,7 @@ import os
 
 exit_file_name_jpg = 'images/exit.jpg'
 connect_file_name_jpg = 'images/connect.jpg'
+setting_file_name_jpg = 'images/setting.jpg'
 
 class CustomMenuBar(QMenuBar):
 
@@ -54,7 +55,7 @@ class CustomMenuBar(QMenuBar):
 
         setting_menu = self.addMenu('Setting')
 
-        setting_uart_command = QAction(QIcon(), 'Настройки платы', self)
+        setting_uart_command = QAction(QIcon(setting_file_name_jpg), 'Настройки платы', self)
         setting_uart_command.setStatusTip('Отправка настроек плате')
         setting_uart_command.triggered.connect(self.open_setting_command_for_stm)
 

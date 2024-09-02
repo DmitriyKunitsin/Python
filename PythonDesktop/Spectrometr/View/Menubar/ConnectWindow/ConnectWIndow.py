@@ -1,10 +1,14 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QMainWindow, QComboBox, QInputDialog, QMessageBox
+from PyQt5.QtGui import QIcon
+
+connect_file_name_jpg = 'images/connect.jpg'
 
 class ConnectWindow(QWidget):
     
     def __init__(self, viev_model):
         super().__init__()
         self.setWindowTitle('Connect Window')
+        self.setWindowIcon(QIcon(connect_file_name_jpg))
         self.setGeometry(300,300,300,200)
         self.viev_model = viev_model
         self.initUI()

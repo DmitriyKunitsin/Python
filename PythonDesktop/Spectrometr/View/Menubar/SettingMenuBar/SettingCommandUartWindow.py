@@ -1,10 +1,15 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QMainWindow, QComboBox, QHBoxLayout, QInputDialog, QMessageBox
+from PyQt5.QtGui import QIcon
 import numpy as np
+
+
+setting_file_name_jpg = 'images/setting.jpg'
 
 class Setting_Command(QWidget):
     def __init__(self, viev_model):
         super().__init__()
         self.setWindowTitle('Setting Window')
+        self.setWindowIcon(QIcon(setting_file_name_jpg))
         self.setGeometry(300,300,300,200)
         self.viev_model = viev_model
         self.initUI()
