@@ -1,5 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel , QComboBox, QMainWindow, QStatusBar, QProgressBar, QSpinBox
+from PyQt5.QtWidgets import QSizePolicy,QScrollArea,QApplication,QSplitter ,QWidget, QVBoxLayout, QHBoxLayout,QPushButton, QLabel , QComboBox, QMainWindow, QStatusBar, QProgressBar, QSpinBox
+from PyQt5.QtCore import Qt  
+
 try:
 # ViewModel folder
     from ViewModel.viewmodel import ViewModel
@@ -29,12 +31,12 @@ class MainWindow(QMainWindow):
         self.layout = QVBoxLayout()
         central_widget.setLayout(self.layout)  # Установите макет для центрального виджета
         
-        # self.label = QLabel("Нажмите кнопку для получения данных")
-        # self.layout.addWidget(self.label)
+        self.label = QLabel("Нажмите кнопку для получения данных")
+        self.layout.addWidget(self.label)
         
-        # self.button = QPushButton("Получить данные")
-        # self.button.clicked.connect(self.get_data)
-        # self.layout.addWidget(self.button)
+        self.button = QPushButton("Получить данные")
+        self.button.clicked.connect(self.get_data)
+        self.layout.addWidget(self.button)
         
         # Меню бар (верхние кнопки)
         self.menu_bar = CustomMenuBar(self)
@@ -50,8 +52,44 @@ class MainWindow(QMainWindow):
         self.tool_bar.set_view_model(self.viewmodel)
         self.addToolBar(self.tool_bar)
         # График
-        self.plot_widget = PlotWindow()
-        self.layout.addWidget(self.plot_widget)
+        # self.plot_widget = PlotWindow()
+        # self.layout.addWidget(self.plot_widget)
+
+
+        # QSplitter для графиков
+        self.splitter = QSplitter(Qt.Horizontal)
+
+        # Создаем фреймы для добавления в splitter
+        left_frame = QWidget()
+        left_frame.setStyleSheet("background-color: lightgray;")  # Пример стиля
+        right_frame = QWidget()
+        right_frame.setStyleSheet("background-color: lightblue;")  # Пример стиля
+
+        # Добавляем фреймы в splitter
+        self.splitter.addWidget(left_frame)
+        self.splitter.addWidget(right_frame)
+
+        # scroll_content
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setWidgetResizable(True)
+
+        # виджет для хранения графиков
+        self.scroll_content = QWidget()
+        self.scroll_layout = QHBoxLayout(self.scroll_content)
+
+        self.scroll_area.setWidget(self.scroll_content)
+
+        # Добавляем scroll_area в правый фрейм
+        right_frame_layout = QVBoxLayout(right_frame)
+        right_frame_layout.addWidget(self.scroll_area)
+
+        # Добавляем scroll_area в splitter
+        # self.splitter.addWidget(self.scroll_area)
+
+        # Добавляем splitter в основной layout
+        self.layout.addWidget(self.splitter)
+
+        # self.layout.addWidget(self.scroll_area)
 
         # self.setLayout(self.layout)
         
@@ -65,7 +103,23 @@ class MainWindow(QMainWindow):
         # self.value_sleep = 100
         # self.progress_bar = CustomProgressBar(self)
         # self.label.setText(f"Полученные данные: {data}")
-        self.plot_widget.plot_data(data)
+        new_plot_frame = QWidget()  # Создаем новый фрейм для графика
+        new_plot_layout = QHBoxLayout(new_plot_frame)  # Макет для нового фрейма
+
+        new_plot_window = PlotWindow()  # Создаем новый график
+        new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        new_plot_window.plot_data(data)
+
+        new_plot_layout.addWidget(new_plot_window)  # Добавляем график в новый фрейм
+
+        self.scroll_layout.addWidget(new_plot_frame)  # Добавляем новый фрейм в scroll_layout
+        ###
+        # new_plot_window = PlotWindow()
+        # new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # new_plot_window.plot_data(data)
+
+        # # self.plot_widget.plot_data(data)
+        # self.scroll_layout.addWidget(new_plot_window)
 
 
     def created_progress_bar(self, value_sleep):
