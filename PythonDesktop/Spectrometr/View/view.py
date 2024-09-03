@@ -36,6 +36,10 @@ class MainWindow(QMainWindow):
         self.label = QLabel("Нажмите кнопку для получения данных")
         self.layout.addWidget(self.label)
         
+        self.button_clear = QPushButton('Очистить')
+        self.button_clear.clicked.connect(self.clean_all_plot)
+        self.layout.addWidget(self.button_clear)
+
         self.button = QPushButton("Получить данные")
         self.button.clicked.connect(self.get_data)
         self.layout.addWidget(self.button)
@@ -75,7 +79,21 @@ class MainWindow(QMainWindow):
         self.splitter.addWidget(self.right_content)
 
         self.layout.addWidget(self.splitter)
-        
+    
+    def clean_all_plot(self):
+        while self.graph_scroll_layout.count() > 0:
+            item = self.graph_scroll_layout.itemAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+                self.graph_scroll_layout.removeItem(item)
+        item = self.right_layout.itemAt(0)
+        widget = item.widget()
+        if widget is not None:
+            widget.deleteLater()
+            self.right_layout.removeItem(item)
+            
+
     def update_label(self, data):  # Пришли данные
         print('Пришли новые данные через сигнал data_changed')
         self.created_progress_bar(60000)

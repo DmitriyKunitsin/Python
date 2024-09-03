@@ -1,8 +1,9 @@
-from PyQt5.QtWidgets import QWidget , QVBoxLayout, QLabel, QPushButton
+from PyQt5.QtWidgets import QWidget , QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QSpacerItem, QSizePolicy
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+ 
 
 
 class PlotWindow(QWidget):
@@ -13,17 +14,46 @@ class PlotWindow(QWidget):
         self.setGeometry(300, 300, 800, 600)
         
         self.my_id = id
+        self.layout = QVBoxLayout(self)
+        
+        # Закрыть
+        self.button_exit = QPushButton('Закрыть', self)
+        self.button_exit.clicked.connect(self.close)
+
+        self.layout.addWidget(self.button_exit)
         self.figure = Figure()
         self.canvas = FigureCanvas(self.figure)
-        self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.canvas)
 
+        # self.layout.addItem(QSpacerItem(20,40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        
         # Кнопка для увеличения графика
         self.button = QPushButton(f'Открыть график {self.my_id}')
         self.button.clicked.connect(self.increase_size)
         self.layout.addWidget(self.button)
-        # self.label = QLabel(f'График № {id}')
-        # layout.addWidget(self.label)
+
+        self.button_horizont_layout = QHBoxLayout()
+
+        # Увеличить график по Времени
+        self.button_time_plus = QPushButton(f'Увеличить по времени', self)
+
+        # Уменьшить график по времени
+        self.button_time_minus = QPushButton(f'Уменьшить по времени', self)
+
+        self.button_horizont_layout.addWidget(self.button_time_plus)
+        self.button_horizont_layout.addWidget(self.button_time_minus)
+
+        # Увеличить график по значению
+        self.button_value_plus = QPushButton(f'Увеличить по значению', self)
+        # Уменьшить график по значению
+        self.button_value_minus = QPushButton(f'Уменьшить по значению', self)
+
+        self.button_horizont_layout.addWidget(self.button_value_plus)
+        self.button_horizont_layout.addWidget(self.button_value_minus)
+        
+
+        self.layout.addLayout(self.button_horizont_layout)
+
 
     def plot_data(self,data):
 
@@ -47,6 +77,7 @@ class PlotWindow(QWidget):
 
     def increase_size(self):
         self.pl = PlotWindow(self.my_id)
+        self.pl.button.deleteLater()
         self.pl.resize(800,800)
         self.pl.plot_data(self.data)
         self.pl.canvas.draw
