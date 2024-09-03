@@ -21,7 +21,9 @@ class MainWindow(QMainWindow):
         self.viewmodel = ViewModel()
         self.viewmodel.data_changed.connect(self.update_label)
         self.value_sleep = 0
+        self.setGeometry(300,300,300,300)
         self.initUI()
+        self.count_plot = 0
         
 
     def initUI(self):
@@ -52,76 +54,36 @@ class MainWindow(QMainWindow):
         self.tool_bar.set_view_model(self.viewmodel)
         self.addToolBar(self.tool_bar)
         # График
-        # self.plot_widget = PlotWindow()
-        # self.layout.addWidget(self.plot_widget)
 
+        self.graph_scroll_area = QScrollArea()
+        self.graph_scroll_area.setWidgetResizable(True)
 
-        # QSplitter для графиков
+        self.graph_scroll_content = QWidget()
+        self.graph_scroll_layout = QHBoxLayout(self.graph_scroll_content)
+
         self.splitter = QSplitter(Qt.Horizontal)
-
-        # Создаем фреймы для добавления в splitter
-        left_frame = QWidget()
-        left_frame.setStyleSheet("background-color: lightgray;")  # Пример стиля
-        right_frame = QWidget()
-        right_frame.setStyleSheet("background-color: lightblue;")  # Пример стиля
-
-        # Добавляем фреймы в splitter
-        self.splitter.addWidget(left_frame)
-        self.splitter.addWidget(right_frame)
-
-        # scroll_content
-        self.scroll_area = QScrollArea(self)
-        self.scroll_area.setWidgetResizable(True)
-
-        # виджет для хранения графиков
-        self.scroll_content = QWidget()
-        self.scroll_layout = QHBoxLayout(self.scroll_content)
-
-        self.scroll_area.setWidget(self.scroll_content)
-
-        # Добавляем scroll_area в правый фрейм
-        right_frame_layout = QVBoxLayout(right_frame)
-        right_frame_layout.addWidget(self.scroll_area)
-
-        # Добавляем scroll_area в splitter
-        # self.splitter.addWidget(self.scroll_area)
-
-        # Добавляем splitter в основной layout
-        self.layout.addWidget(self.splitter)
-
-        # self.layout.addWidget(self.scroll_area)
-
-        # self.setLayout(self.layout)
+        self.layout.addWidget(self.graph_scroll_area)
         
+    def update_label(self, data):  # Пришли данные
+        print('Пришли новые данные через сигнал data_changed')
+        self.created_progress_bar(60000)
+
+        self.count_plot += 1
+        new_plot_window = PlotWindow(self.count_plot)  # Создаем новый график
+        new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        try:
+            new_plot_window.plot_data(data)  # Обработка данных для нового графика
+        except Exception as e:
+            print(f"Ошибка при обработке данных для графика: {e}")
+        self.splitter.addWidget(new_plot_window) 
+        # Добавляем QSplitter в graph_scroll_layout
+        self.graph_scroll_layout.addWidget(self.splitter)
+        # Устанавливаем graph_scroll_content как виджет для graph_scroll_area
+        self.graph_scroll_area.setWidget(self.graph_scroll_content)
 
     def get_data(self):## отправили команду
         self.viewmodel.fetch_data(self.value_sleep)  # Запрос данных из ViewModel
-
-    def update_label(self, data): ## Пришли данные
-        print('Пришли новые данные через сигнал data_changed')
-        self.created_progress_bar(60000)
-        # self.value_sleep = 100
-        # self.progress_bar = CustomProgressBar(self)
-        # self.label.setText(f"Полученные данные: {data}")
-        new_plot_frame = QWidget()  # Создаем новый фрейм для графика
-        new_plot_layout = QHBoxLayout(new_plot_frame)  # Макет для нового фрейма
-
-        new_plot_window = PlotWindow()  # Создаем новый график
-        new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        new_plot_window.plot_data(data)
-
-        new_plot_layout.addWidget(new_plot_window)  # Добавляем график в новый фрейм
-
-        self.scroll_layout.addWidget(new_plot_frame)  # Добавляем новый фрейм в scroll_layout
-        ###
-        # new_plot_window = PlotWindow()
-        # new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        # new_plot_window.plot_data(data)
-
-        # # self.plot_widget.plot_data(data)
-        # self.scroll_layout.addWidget(new_plot_window)
-
-
+        
     def created_progress_bar(self, value_sleep):
         self.value_sleep = value_sleep
         print(f'self.value_sleep = value_sleep : {self.value_sleep}')
