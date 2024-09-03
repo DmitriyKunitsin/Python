@@ -15,13 +15,13 @@ class PlotWindow(QWidget):
         self.my_id = id
         self.figure = Figure()
         self.canvas = FigureCanvas(self.figure)
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.canvas)
+        self.layout = QVBoxLayout(self)
+        self.layout.addWidget(self.canvas)
 
         # Кнопка для увеличения графика
         self.button = QPushButton(f'Открыть график {self.my_id}')
         self.button.clicked.connect(self.increase_size)
-        layout.addWidget(self.button)
+        self.layout.addWidget(self.button)
         # self.label = QLabel(f'График № {id}')
         # layout.addWidget(self.label)
 
@@ -47,7 +47,7 @@ class PlotWindow(QWidget):
 
     def increase_size(self):
         self.pl = PlotWindow(self.my_id)
-        self.pl.setGeometry(300,300,800,800)
+        self.pl.resize(800,800)
         self.pl.plot_data(self.data)
         self.pl.canvas.draw
         self.pl.show()

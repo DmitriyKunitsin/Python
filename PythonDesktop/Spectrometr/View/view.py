@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         self.viewmodel = ViewModel()
         self.viewmodel.data_changed.connect(self.update_label)
         self.value_sleep = 0
-        self.setGeometry(300,300,300,300)
+        self.setGeometry(150,150,1600,800)
         self.initUI()
         self.count_plot = 0
         
@@ -53,8 +53,8 @@ class MainWindow(QMainWindow):
         self.tool_bar = CustomToolBar()
         self.tool_bar.set_view_model(self.viewmodel)
         self.addToolBar(self.tool_bar)
-        # График
 
+        # График
         self.graph_scroll_area = QScrollArea()
         self.graph_scroll_area.setWidgetResizable(True)
 
@@ -63,6 +63,10 @@ class MainWindow(QMainWindow):
 
         self.splitter = QSplitter(Qt.Horizontal)
         self.layout.addWidget(self.graph_scroll_area)
+
+        self.right_content = QWidget()
+        # self.right_layout = QHBoxLayout(self.right_content)
+        self.layout.addWidget(self.right_content)
         
     def update_label(self, data):  # Пришли данные
         print('Пришли новые данные через сигнал data_changed')

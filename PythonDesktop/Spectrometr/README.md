@@ -1,0 +1,1 @@
+![alt text](/Spectrometr/screen/image.png)
