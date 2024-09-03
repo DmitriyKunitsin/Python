@@ -84,14 +84,16 @@ class CustomMenuBar(QMenuBar):
     def disconect(self):
         ''' Меняет булевое значение в цикле чтения порта'''
         if self.view_model:
-            self.view_model.disconect_port()
-            self.update_status(False)
+            try:
+                self.view_model.disconect_port()
+                self.update_status(False)
+            except Exception as ex:
+                print(f'Error : {ex}')
         else:
             print('self.view_model not found')
     def open_connect_window(self):
         ''' Создает окно подключения к девайсу'''
-        self.update_status(True)
-        self.connect_window = ConnectWindow(self.view_model)
+        self.connect_window = ConnectWindow(self.view_model, self)
         self.connect_window.show()
     def open_setting_command_for_stm(self):
         ''' Создает окно с настройками платы'''

@@ -54,8 +54,7 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self.status_bar)
 
         # ToolBar (Верхняя панель с картинками)
-        self.tool_bar = CustomToolBar()
-        self.tool_bar.set_view_model(self.viewmodel)
+        self.tool_bar = CustomToolBar(self ,self.viewmodel, self.menu_bar)
         self.addToolBar(self.tool_bar)
 
 
