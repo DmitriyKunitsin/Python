@@ -45,8 +45,8 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.button)
         
         # Меню бар (верхние кнопки)
-        self.menu_bar = CustomMenuBar(self)
-        self.menu_bar.set_view_model(self.viewmodel)
+        self.menu_bar = CustomMenuBar(self, self.viewmodel)
+        # self.menu_bar.set_view_model(self.viewmodel)
         self.layout.setMenuBar(self.menu_bar)
 
         # статус бар (подсказки внизу слева)
@@ -92,6 +92,7 @@ class MainWindow(QMainWindow):
         if widget is not None:
             widget.deleteLater()
             self.right_layout.removeItem(item)
+            self.count_plot = 0
             
 
     def update_label(self, data):  # Пришли данные

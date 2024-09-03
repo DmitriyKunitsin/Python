@@ -14,7 +14,7 @@ class SerialPort(QObject):
         self.devices = [None]
         self.selected_port = None
         self.selected_baudrate = None
-        self.running = None
+        self.running = False
 
     def start_reading(self, value_sleep):
         # Имитация асинхронного чтения данных
@@ -40,13 +40,14 @@ class SerialPort(QObject):
         self.selected_baudrate = int(baud)
 
     def read_uart(self):
+        self.running = True
         print(f"Подключено к {self.selected_port}. Введенная скорость = {self.selected_baudrate}. Начинаем чтение данных...")
         with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1, bytesize=8, parity='N', stopbits=1) as ser:
             data_list = []
             i = 0
             last_received_time = time.time()
             timeout_duration = 2 # Время ожидания окончания пакета в секундах
-            while True:
+            while self.running:
                 if ser.in_waiting > 0:
                     line = ser.readline()  # Читаем строку
                     if line:
@@ -61,24 +62,9 @@ class SerialPort(QObject):
                     self.data_received.emit(data_list)
                     i+=1
                     data_list.clear() # очистка списка
-    # def read_uart(self):
-    #         # i = 0
-    #         # self.start_thread_read_ueart()
-    #     # with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1) as ser:
-    #         # while True:
-    #         # while self.running.is_set():
-    #             print(f"Подключено к {self.selected_port}. введенная скорость = {self.selected_baudrate} Начинаем чтение данных...")
-    #             # if(i >= 2):
-    #             #     self.running.clear()
-    #             #     break
-    #             # line = ser.readline()
-    #             # if line:
-    #                 # data = line.decode('utf-8').strip()
-    #             numbers = np.random.randint(1, 1701, size=8191).tolist()#list(map(int, data.split('\r\n')))
-    #             print("Полученны числа:")
-    #             self.data_received.emit(numbers) # Отправляем данные на сигнал
-    #             # time.sleep(2)
-    #             # i+=1
+    def stop_reading(self):
+        self.running = False
+        print('Отключен от порта')
 
     def start_thread_read_ueart(self):
         if self.running is not None and self.running.is_set():

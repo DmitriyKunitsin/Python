@@ -24,3 +24,6 @@ class ViewModel(QObject):
     
     def select_device(self, name_port, baud):
         self.model.select_device(name_port, baud)
+
+    def disconect_port(self):
+        self.model.disconect_reading()

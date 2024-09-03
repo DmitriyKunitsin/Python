@@ -19,8 +19,9 @@ setting_file_name_jpg = 'images/setting.jpg'
 
 class CustomMenuBar(QMenuBar):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, view_model=None):
         super().__init__(parent)
+        self.view_model = view_model
         self.initMenu()
 
     def set_view_model(self, view_model):
@@ -47,11 +48,19 @@ class CustomMenuBar(QMenuBar):
         # image = image.resize((1024, 1024))  # Задайте нужный размер
         # image.save('images/resized_image.jpg')  # Сохраните изменённое изображение
 
+        # Подключение к порту
         connect_action = QAction(QIcon(connect_file_name_jpg),'Подключиться', self)
         connect_action.setStatusTip('Подключиться к порту')
         connect_action.triggered.connect(self.open_connect_window)
 
         connect_menu.addAction(connect_action)
+
+        disconect_port_action = QAction(QIcon(), 'Отключиться', self)
+        disconect_port_action.setStatusTip('Отключиться от порта')
+        disconect_port_action.triggered.connect(self.disconect)
+
+        connect_menu.addAction(disconect_port_action)
+
 
         setting_menu = self.addMenu('Setting')
 
@@ -60,6 +69,13 @@ class CustomMenuBar(QMenuBar):
         setting_uart_command.triggered.connect(self.open_setting_command_for_stm)
 
         setting_menu.addAction(setting_uart_command)
+
+    def disconect(self):
+        # self.set_view_model()
+        if self.view_model:
+            self.view_model.disconect_port()
+        else:
+            print('self.view_model not found')
 
     def open_connect_window(self):
         self.connect_window = ConnectWindow(self.view_model)

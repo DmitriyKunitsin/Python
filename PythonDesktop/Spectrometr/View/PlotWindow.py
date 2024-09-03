@@ -33,6 +33,13 @@ class PlotWindow(QWidget):
         self.layout.addWidget(self.button)
 
         self.button_horizont_layout = QHBoxLayout()
+        # Увеличить график по значению
+        self.button_value_plus = QPushButton(f'Увеличить по значению', self)
+        # Уменьшить график по значению
+        self.button_value_minus = QPushButton(f'Уменьшить по значению', self)
+
+        self.button_horizont_layout.addWidget(self.button_value_plus)
+        self.button_horizont_layout.addWidget(self.button_value_minus)
 
         # Увеличить график по Времени
         self.button_time_plus = QPushButton(f'Увеличить по времени', self)
@@ -43,13 +50,6 @@ class PlotWindow(QWidget):
         self.button_horizont_layout.addWidget(self.button_time_plus)
         self.button_horizont_layout.addWidget(self.button_time_minus)
 
-        # Увеличить график по значению
-        self.button_value_plus = QPushButton(f'Увеличить по значению', self)
-        # Уменьшить график по значению
-        self.button_value_minus = QPushButton(f'Уменьшить по значению', self)
-
-        self.button_horizont_layout.addWidget(self.button_value_plus)
-        self.button_horizont_layout.addWidget(self.button_value_minus)
         
 
         self.layout.addLayout(self.button_horizont_layout)

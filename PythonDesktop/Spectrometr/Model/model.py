@@ -31,3 +31,6 @@ class DataMode(QObject):
         self.serial_port.input_selected_port(name_port)
         self.serial_port.input_selected_baudrate(baud)
         th.Thread(daemon=True,target=self.serial_port.read_uart).start()
+
+    def disconect_reading(self):
+        self.serial_port.stop_reading()
