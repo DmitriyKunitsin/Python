@@ -72,10 +72,6 @@ class MainWindow(QMainWindow):
         self.right_content = QWidget()
         self.right_layout = QVBoxLayout(self.right_content)
 
-        # Тест добавления элемента в правый блок
-        self.right_label = QLabel("Дополнительные Тест элементы")
-        self.right_layout.addWidget(self.right_label)
-
         self.splitter.addWidget(self.right_content)
 
         self.layout.addWidget(self.splitter)
@@ -83,15 +79,22 @@ class MainWindow(QMainWindow):
     def update_label(self, data):  # Пришли данные
         print('Пришли новые данные через сигнал data_changed')
         self.created_progress_bar(60000)
-
         self.count_plot += 1
+
         new_plot_window = PlotWindow(self.count_plot)  # Создаем новый график
         new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         try:
             new_plot_window.plot_data(data)  # Обработка данных для нового графика
-            self.graph_scroll_layout.addWidget(new_plot_window)
         except Exception as e:
             print(f"Ошибка при обработке данных для графика: {e}")
+        if self.count_plot == 1:
+            self.right_layout.addWidget(new_plot_window)
+        else:
+            if self.right_layout.count() > 0:
+                old_plot = self.right_layout.itemAt(0).widget() 
+                self.right_layout.removeWidget(old_plot) 
+                self.graph_scroll_layout.addWidget(old_plot)  
+                self.right_layout.addWidget(new_plot_window)
 
     def get_data(self):## отправили команду
         self.viewmodel.fetch_data(self.value_sleep)  # Запрос данных из ViewModel
