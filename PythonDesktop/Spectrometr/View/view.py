@@ -54,19 +54,31 @@ class MainWindow(QMainWindow):
         self.tool_bar.set_view_model(self.viewmodel)
         self.addToolBar(self.tool_bar)
 
+
+        self.splitter = QSplitter(Qt.Horizontal)
+        ## левый виджет для графиков
         # График
         self.graph_scroll_area = QScrollArea()
         self.graph_scroll_area.setWidgetResizable(True)
 
         self.graph_scroll_content = QWidget()
         self.graph_scroll_layout = QHBoxLayout(self.graph_scroll_content)
+        # Устанавливаем graph_scroll_content как виджет для graph_scroll_area
+        self.graph_scroll_area.setWidget(self.graph_scroll_content)
 
-        self.splitter = QSplitter(Qt.Horizontal)
-        self.layout.addWidget(self.graph_scroll_area)
+        self.splitter.addWidget(self.graph_scroll_area)
 
+        # правый виджет
         self.right_content = QWidget()
-        # self.right_layout = QHBoxLayout(self.right_content)
-        self.layout.addWidget(self.right_content)
+        self.right_layout = QVBoxLayout(self.right_content)
+
+        # Тест добавления элемента в правый блок
+        self.right_label = QLabel("Дополнительные Тест элементы")
+        self.right_layout.addWidget(self.right_label)
+
+        self.splitter.addWidget(self.right_content)
+
+        self.layout.addWidget(self.splitter)
         
     def update_label(self, data):  # Пришли данные
         print('Пришли новые данные через сигнал data_changed')
@@ -77,13 +89,9 @@ class MainWindow(QMainWindow):
         new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         try:
             new_plot_window.plot_data(data)  # Обработка данных для нового графика
+            self.graph_scroll_layout.addWidget(new_plot_window)
         except Exception as e:
             print(f"Ошибка при обработке данных для графика: {e}")
-        self.splitter.addWidget(new_plot_window) 
-        # Добавляем QSplitter в graph_scroll_layout
-        self.graph_scroll_layout.addWidget(self.splitter)
-        # Устанавливаем graph_scroll_content как виджет для graph_scroll_area
-        self.graph_scroll_area.setWidget(self.graph_scroll_content)
 
     def get_data(self):## отправили команду
         self.viewmodel.fetch_data(self.value_sleep)  # Запрос данных из ViewModel
