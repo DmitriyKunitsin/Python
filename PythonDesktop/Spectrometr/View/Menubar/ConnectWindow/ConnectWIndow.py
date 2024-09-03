@@ -5,12 +5,11 @@ connect_file_name_jpg = 'images/connect.jpg'
 
 class ConnectWindow(QWidget):
     
-    def __init__(self, viev_model, menu_bar):
+    def __init__(self, viev_model):
         super().__init__()
         self.setWindowTitle('Connect Window')
         self.setWindowIcon(QIcon(connect_file_name_jpg))
         self.setGeometry(300,300,300,200)
-        self.menu_bar = menu_bar
         self.viev_model = viev_model
         self.initUI()
         self.baudrate = None
@@ -93,7 +92,6 @@ class ConnectWindow(QWidget):
                 name_port, baud = selected
                 try:
                     self.viev_model.select_device(name_port, baud)
-                    self.menu_bar.update_status(True)
                     print("Устройство выбрано:", selected)
                 except ValueError as e:
                     print(e)

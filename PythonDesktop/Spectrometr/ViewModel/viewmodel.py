@@ -6,6 +6,8 @@ except ImportError as e:
 
 class ViewModel(QObject):
     data_changed = pyqtSignal(list)
+    disconnect_signal = pyqtSignal()
+    connect_signal = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -24,6 +26,8 @@ class ViewModel(QObject):
     
     def select_device(self, name_port, baud):
         self.model.select_device(name_port, baud)
+        self.connect_signal.emit()
 
     def disconect_port(self):
         self.model.disconect_reading()
+        self.disconnect_signal.emit()

@@ -39,13 +39,20 @@ class CustomMenuBar(QMenuBar):
 
         self.addWidgetToMenu(self.status_widget)
 
+        if self.view_model:
+            self.view_model.connect_signal.connect(self.on_status)
+            self.view_model.disconnect_signal.connect(self.off_status)
+
         self.initMenu()
     
     def addWidgetToMenu(self, widget):
         self.setCornerWidget(widget)
     def set_view_model(self, view_model):
         self.view_model = view_model
-
+    def on_status(self):
+        self.update_status(True)
+    def off_status(self):
+        self.update_status(False)
     def initMenu(self):
         file_menu = self.addMenu('Menu') # создаю объект менюшки
         if not os.path.isfile(exit_file_name_jpg):
@@ -86,14 +93,14 @@ class CustomMenuBar(QMenuBar):
         if self.view_model:
             try:
                 self.view_model.disconect_port()
-                self.update_status(False)
+                # self.update_status(False)
             except Exception as ex:
                 print(f'Error : {ex}')
         else:
             print('self.view_model not found')
     def open_connect_window(self):
         ''' Создает окно подключения к девайсу'''
-        self.connect_window = ConnectWindow(self.view_model, self)
+        self.connect_window = ConnectWindow(self.view_model)
         self.connect_window.show()
     def open_setting_command_for_stm(self):
         ''' Создает окно с настройками платы'''

@@ -18,6 +18,18 @@ class PlotWindow(QWidget):
         
         # Закрыть
         self.button_exit = QPushButton('Закрыть', self)
+        self.button_exit.setStyleSheet('''
+            QPushButton {
+                background-color: red;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: darkred;  /* Цвет при наведении */
+            }
+            QPushButton:pressed {
+                background-color: maroon;  /* Цвет при нажатии */
+            }
+        ''')
         self.button_exit.clicked.connect(self.close)
 
         self.layout.addWidget(self.button_exit)
@@ -35,17 +47,21 @@ class PlotWindow(QWidget):
         self.button_horizont_layout = QHBoxLayout()
         # Увеличить график по значению
         self.button_value_plus = QPushButton(f'Увеличить по значению', self)
+        self.button_value_plus.setStyleSheet('background-color: green')
         # Уменьшить график по значению
         self.button_value_minus = QPushButton(f'Уменьшить по значению', self)
+        self.button_value_minus.setStyleSheet('background-color: blue')
 
         self.button_horizont_layout.addWidget(self.button_value_plus)
         self.button_horizont_layout.addWidget(self.button_value_minus)
 
         # Увеличить график по Времени
         self.button_time_plus = QPushButton(f'Увеличить по времени', self)
+        self.button_time_plus.setStyleSheet('background-color: green')
 
         # Уменьшить график по времени
         self.button_time_minus = QPushButton(f'Уменьшить по времени', self)
+        self.button_time_minus.setStyleSheet('background-color: blue')
 
         self.button_horizont_layout.addWidget(self.button_time_plus)
         self.button_horizont_layout.addWidget(self.button_time_minus)

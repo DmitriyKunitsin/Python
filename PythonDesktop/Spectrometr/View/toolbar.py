@@ -47,5 +47,5 @@ class CustomToolBar(QToolBar):
 
 
     def open_connect_window(self):
-        self.connect_win = ConnectWindow(self.view_model, self.menu_bar)
+        self.connect_win = ConnectWindow(self.view_model)
         self.connect_win.show()

@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QSizePolicy,QScrollArea,QApplication,QSplitter ,QWidget, QVBoxLayout, QHBoxLayout,QPushButton, QLabel , QComboBox, QMainWindow, QStatusBar, QProgressBar, QSpinBox
+from PyQt5.QtWidgets import QSizePolicy,QScrollArea,QApplication,QSplitter ,QWidget, QVBoxLayout, QHBoxLayout,QPushButton, QLabel , QMainWindow, QStatusBar
 from PyQt5.QtCore import Qt  
 
 try:
@@ -20,7 +20,9 @@ class MainWindow(QMainWindow):
         # Инициализация ViewModel
         self.viewmodel = ViewModel()
         self.viewmodel.data_changed.connect(self.update_label)
+        self.viewmodel.disconnect_signal.connect(self.deleted_progress_bar)
         self.value_sleep = 0
+        self.progress_bar = None
         self.setGeometry(150,150,1600,800)
         self.initUI()
         self.count_plot = 0
@@ -46,7 +48,6 @@ class MainWindow(QMainWindow):
         
         # Меню бар (верхние кнопки)
         self.menu_bar = CustomMenuBar(self, self.viewmodel)
-        # self.menu_bar.set_view_model(self.viewmodel)
         self.layout.setMenuBar(self.menu_bar)
 
         # статус бар (подсказки внизу слева)
@@ -123,6 +124,9 @@ class MainWindow(QMainWindow):
         # Прогресс бар под графиков, показывающий прогресс до обновления
         self.progress_bar = CustomProgressBar(self)
         self.layout.addWidget(self.progress_bar)
+    def deleted_progress_bar(self):
+        if self.progress_bar is not None:
+            self.progress_bar.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
