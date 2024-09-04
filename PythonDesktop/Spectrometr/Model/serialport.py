@@ -59,7 +59,7 @@ class SerialPort(QObject):
                                 data_list.append(int(decoded_line))
                     # Проверяем таймаут
                     if time.time() - last_received_time > timeout_duration and data_list:
-                        print(f"Получен пакет № {i+1}: {data_list}")
+                        print(f"Получен пакет № {i+1}")
                         self.data_received.emit(data_list)
                         i+=1
                         data_list.clear() # очистка списка

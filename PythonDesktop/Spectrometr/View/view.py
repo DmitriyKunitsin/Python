@@ -17,10 +17,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Spektrometr")
-        self.setStyleSheet('''
-        background-color: grey;
-                color: white;
-        ''')
         # Инициализация ViewModel
         self.viewmodel = ViewModel()
         self.viewmodel.data_changed.connect(self.update_label)
@@ -129,7 +125,7 @@ class MainWindow(QMainWindow):
             
 
     def update_label(self, data):  # Пришли данные
-        if str(data).find('Error'):
+        if "Error :" in str(data):
             QMessageBox.warning(self, 'Ошибка порта', f'Отказано в доступе!\n пожалуйста проверьте, подключено ли устройство\n {data}')
             self.viewmodel.disconect_port()
         else:
