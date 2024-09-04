@@ -121,6 +121,7 @@ class MainWindow(QMainWindow):
                 widget.deleteLater()
                 self.right_layout.removeItem(item)
                 self.count_plot = 0
+                self.deleted_progress_bar()
 
             
 

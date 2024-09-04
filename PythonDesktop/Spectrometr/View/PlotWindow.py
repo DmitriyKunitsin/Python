@@ -17,6 +17,7 @@ class PlotWindow(QWidget):
         self.setGeometry(300, 300, 800, 600)
         self.all_data = []
         self.count_data = 0
+        self.temp_data = None
         self.my_id = id
         self.layout = QVBoxLayout(self)
         
@@ -42,9 +43,9 @@ class PlotWindow(QWidget):
         self.layout.addWidget(self.canvas)
         
         # Кнопка для увеличения графика
-        self.button = QPushButton(f'Открыть график {self.my_id}')
-        self.button.clicked.connect(self.increase_size)
-        self.layout.addWidget(self.button)
+        self.button_open_graph = QPushButton(f'Открыть график {self.my_id}')
+        self.button_open_graph.clicked.connect(self.increase_size)
+        self.layout.addWidget(self.button_open_graph)
 
         self.button_horizont_layout = QHBoxLayout()
         # Увеличить график по значению
@@ -76,10 +77,11 @@ class PlotWindow(QWidget):
 
         self.layout.addLayout(self.button_horizont_layout)
     def multiply_pairs(self,date):
+        temp = []
         for i in range(0, len(date)):
-            if date[i] < 200:
-                date[i] = date[i] * 2
-        return date
+            if date[i] < 50:
+                temp.append(date[i] * 2)
+        return temp
         
     def delim_pairs(self, data):
         ''' Делит каждое значение '''
@@ -110,51 +112,53 @@ class PlotWindow(QWidget):
             self.plot_update(value_plus)
         elif action == value_minus:
             self.plot_update(value_minus)
-
+    def plot_resize_count(self):
+        ''' Рисует новый график из буфера, увеличивая колличество счетов '''
+        self.figure.clear()
+        ax = self.figure.add_subplot()
+        # ax.stem(range(len(self.all_data[self.count_data])), self.multiply_pairs(self.all_data[self.count_data]))
+        ax.plot(self.temp_data)
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Values')
+        ax.set_title(f'Spektr № {self.my_id}')
+    def plot_print(self):
+        ''' Рисует обновленный график '''
+        self.figure.clear()
+        ax = self.figure.add_subplot()
+        # ax.stem(range(len(self.all_data[self.count_data])), self.all_data[self.count_data])
+        ax.plot(self.all_data[self.count_data])
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Values')
+        ax.set_title(f'Spektr № {self.my_id}')
     def plot_update(self, action):
         if self.count_data >= 0:
             if action == time_minus and self.count_data != 0:
-                self.figure.clear()
-                ax = self.figure.add_subplot()
+                self.count_data -= 1
+                self.all_data.pop()
+                self.temp_data = None
+                self.plot_print()
                 print(len(self.all_data))
                 print(f'Всего сохранено список данных {self.count_data}')
-                self.count_data -= 1
-                # ax.stem(range(len(self.all_data[self.count_data])), self.all_data[self.count_data])
-                ax.plot(self.all_data[self.count_data])
-                self.all_data.pop()
-                ax.set_xlabel('Time')
-                ax.set_ylabel('Values')
-                ax.set_title(f'Spektr № {self.my_id}')
-                
                 
             elif action == time_plus and self.count_data < 6: # plus time
-                self.figure.clear()
-                ax = self.figure.add_subplot()
                 
                 self.all_data.append(self.sum_pairs(self.all_data[self.count_data]))
                 self.count_data += 1
-                # ax.stem(range(len(self.all_data[self.count_data])), self.all_data[self.count_data])
-                ax.plot(self.all_data[self.count_data])
-                ax.set_xlabel('Time')
-                ax.set_ylabel('Values')
-                ax.set_title(f'Spektr № {self.my_id}')
+                self.temp_data = None
+                self.plot_print()
                 
                 print(len(self.all_data))
                 print(f'Всего сохранено список данных {self.count_data}')
             elif action == value_minus:
                 # TODO изменение по x-ксу уменьшаем
-                print('Заглушка')
+                print('Заглушка уменьшения порога')
             elif action == value_plus:
-                self.figure.clear()
-                ax = self.figure.add_subplot()
-                
-                # ax.stem(range(len(self.all_data[self.count_data])), self.multiply_pairs(self.all_data[self.count_data]))
-                ax.plot(self.multiply_pairs(self.all_data[self.count_data]))
-                ax.set_xlabel('Time')
-                ax.set_ylabel('Values')
-                ax.set_title(f'Spektr № {self.my_id}')
-                # TODO изменения по х-ксу увеличиваем, каждый раз +10, что не 0
-                print('Заглушка')
+                if self.temp_data is None:
+                    self.temp_data = self.multiply_pairs(self.all_data[self.count_data])
+                else:
+                    self.temp_data = self.multiply_pairs(self.temp_data)
+                self.plot_resize_count()
+                # TODO изменения по х-ксу увеличиваем, каждый раз *2, что меньше 50
         self.canvas.draw()
 
     def plot_steam(self,data):
@@ -185,31 +189,39 @@ class PlotWindow(QWidget):
 
     def increase_size(self):
         self.pl = PlotWindow(self.my_id)
-        self.pl.button.deleteLater()
+        self.pl.button_open_graph.deleteLater()
         self.pl.resize(800,800)
         self.pl.plot_data(self.data)
         self.pl.canvas.draw
         self.pl.show()
 
-    def resizeEvent(self, event):
-        width = event.size().width()
-        height = event.size().height()
-        
-        min_width_px = 400 
-        min_height_px = 300 
+class DataManager:
+    def __init__(self):
+        self.all_data = []
+        self.count_data = 0
+        self.temp_data = None
 
-        if width < min_width_px:
-            width = min_width_px
-        if height < min_height_px:
-            height = min_height_px
+    def add_data(self, data):
+        self.all_data.append(data)
+        self.count_data += 1
 
-        winch = width / self.figure.dpi
-        hinch = height / self.figure.dpi
+    def remove_data(self):
+        if self.count_data > 0:
+            self.all_data.pop()
+            self.count_data -= 1
 
-        if winch > 0 and hinch > 0:
-            self.figure.set_size_inches(winch, hinch, forward=False)
+    def get_current_data(self):
+        return self.all_data[self.count_data] if self.count_data < len(self.all_data) else None
+
+    def multiply_current_data(self):
+        if self.temp_data is None:
+            self.temp_data = self.multiply_pairs(self.get_current_data())
         else:
-            print("Получены некорректные размеры:", winch, hinch)
-            self.figure.set_size_inches(4, 5, forward=False)
+            self.temp_data = self.multiply_pairs(self.temp_data)
 
-        self.canvas.draw()
+    def multiply_pairs(self, data):
+        # Реализация умножения пар
+        return [x * 2 for x in data]  # Пример умножения на 2
+
+    def get_all_data_length(self):
+        return len(self.all_data)
