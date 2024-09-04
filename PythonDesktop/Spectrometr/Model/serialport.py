@@ -42,26 +42,41 @@ class SerialPort(QObject):
     def read_uart(self):
         self.running = True
         print(f"Подключено к {self.selected_port}. Введенная скорость = {self.selected_baudrate}. Начинаем чтение данных...")
-        with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1, bytesize=8, parity='N', stopbits=1) as ser:
-            data_list = []
-            i = 0
-            last_received_time = time.time()
-            timeout_duration = 2 # Время ожидания окончания пакета в секундах
-            while self.running:
-                if ser.in_waiting > 0:
-                    line = ser.readline()  # Читаем строку
-                    if line:
-                        decoded_line = line.decode('utf-8', errors='ignore').strip()
-                        
-                        if decoded_line.isdigit():
-                            last_received_time = time.time() 
-                            data_list.append(int(decoded_line))
-                # Проверяем таймаут
-                if time.time() - last_received_time > timeout_duration and data_list:
-                    print(f"Получен пакет № {i+1}: {data_list}")
-                    self.data_received.emit(data_list)
-                    i+=1
-                    data_list.clear() # очистка списка
+        try:
+            with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1, bytesize=8, parity='N', stopbits=1) as ser:
+                data_list = []
+                i = 0
+                last_received_time = time.time()
+                timeout_duration = 2 # Время ожидания окончания пакета в секундах
+                while self.running:
+                    if ser.in_waiting > 0:
+                        line = ser.readline()  # Читаем строку
+                        if line:
+                            decoded_line = line.decode('utf-8', errors='ignore').strip()
+                            
+                            if decoded_line.isdigit():
+                                last_received_time = time.time() 
+                                data_list.append(int(decoded_line))
+                    # Проверяем таймаут
+                    if time.time() - last_received_time > timeout_duration and data_list:
+                        print(f"Получен пакет № {i+1}: {data_list}")
+                        self.data_received.emit(data_list)
+                        i+=1
+                        data_list.clear() # очистка списка
+        except serial.SerialException as e:
+            print(f'Ошибка подключения к порту: {e}')
+            error = [f'Error : {e}']
+            self.data_received.emit(error)
+        except PermissionError as e:
+            error = [f'Error : {e}']
+            self.data_received.emit(error) 
+            print(f'Ошибка доступа к порту: {e}')
+        except Exception as e:
+            error = [f'Error : {e}']
+            self.data_received.emit(error) 
+            print(f'Произошла непредвиденная ошибка: {e}')
+            print('Error ',e)
+        
     def stop_reading(self):
         self.running = False
         print('Отключен от порта')

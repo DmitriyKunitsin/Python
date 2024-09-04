@@ -12,7 +12,8 @@ class PlotWindow(QWidget):
         super().__init__()
         self.setWindowTitle('Data Plot')
         self.setGeometry(300, 300, 800, 600)
-        
+        self.all_data = []
+        self.count_data = 0
         self.my_id = id
         self.layout = QVBoxLayout(self)
         
@@ -58,10 +59,12 @@ class PlotWindow(QWidget):
         # Увеличить график по Времени
         self.button_time_plus = QPushButton(f'Увеличить по времени', self)
         self.button_time_plus.setStyleSheet('background-color: green')
+        self.button_time_plus.clicked.connect(lambda: self.change_plot_for_time('plus'))
 
         # Уменьшить график по времени
         self.button_time_minus = QPushButton(f'Уменьшить по времени', self)
         self.button_time_minus.setStyleSheet('background-color: blue')
+        self.button_time_minus.clicked.connect(lambda: self.change_plot_for_time('minus'))
 
         self.button_horizont_layout.addWidget(self.button_time_plus)
         self.button_horizont_layout.addWidget(self.button_time_minus)
@@ -70,26 +73,69 @@ class PlotWindow(QWidget):
 
         self.layout.addLayout(self.button_horizont_layout)
 
+    def sum_pairs(self,data):
+        """Суммирует пары элементов в списке."""
+        temp = []
+        for i in range(0, len(data), 2):
+            if i + 1 < len(data):  # Проверка на наличие следующего элемента
+                temp.append(data[i] + data[i + 1])
+            else:
+                temp.append(data[i])
+        return temp
+    def change_plot_for_time(self, action):
+        if action == 'plus':
+            print('нажат PLUS вывод ниже результата')
+            self.plot_update('plus')
+        else:
+            print('нажат MINUS вывод ниже результата')
+            self.plot_update('minus')
+
+    def plot_update(self, action):
+        if self.count_data >= 0:
+            if action == 'minus' and self.count_data != 0:
+                self.figure.clear()
+                ax = self.figure.add_subplot()
+                print(len(self.all_data))
+                print(f'Всего сохранено список данных {self.count_data}')
+                self.count_data -= 1
+                
+                ax.plot(self.all_data[self.count_data])
+                self.all_data.pop()
+                ax.set_xlabel('Time')
+                ax.set_ylabel('Values')
+                ax.set_title(f'Spektr № {self.my_id}')
+                
+                
+            elif action == 'plus': # plus
+                self.figure.clear()
+                ax = self.figure.add_subplot()
+                
+                self.all_data.append(self.sum_pairs(self.all_data[self.count_data]))
+                self.count_data += 1
+                ax.plot(self.all_data[self.count_data])
+                ax.set_xlabel('Time')
+                ax.set_ylabel('Values')
+                ax.set_title(f'Spektr № {self.my_id}')
+                
+                print(len(self.all_data))
+                print(f'Всего сохранено список данных {self.count_data}')
+                # self.canvas.draw()
+        self.canvas.draw()
+
 
     def plot_data(self,data):
-
-        # self.figure.clear()
-
+        self.figure.clear()
         ax = self.figure.add_subplot()
-
         ax.plot(data)
         ax.set_xlabel('Time')
         ax.set_ylabel('Values')
         ax.set_title(f'Spektr № {self.my_id}')
-
         # Обновление Canvas
-        self.canvas.draw()
+        self.canvas.draw()   
         self.data = data
-        # plt.plot(data)
-        # plt.xlabel('Time')
-        # plt.ylabel('Values')
-        # plt.title('Spektr')
-        # plt.show()
+        self.all_data.append(data)
+        print(len(self.all_data))
+        print(f'Всего сохранено список данных {self.count_data}')
 
     def increase_size(self):
         self.pl = PlotWindow(self.my_id)

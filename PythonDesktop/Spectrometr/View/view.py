@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QSizePolicy,QScrollArea,QApplication,QSplitter ,QWidget, QVBoxLayout, QHBoxLayout,QPushButton, QLabel , QMainWindow, QStatusBar
+from PyQt5.QtWidgets import QSizePolicy,QScrollArea,QApplication,QSplitter ,QWidget, QVBoxLayout, QHBoxLayout,QPushButton, QLabel , QMainWindow, QStatusBar, QMessageBox
 from PyQt5.QtCore import Qt  
 
 try:
@@ -17,6 +17,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Spektrometr")
+        self.setStyleSheet('''
+        background-color: grey;
+                color: white;
+        ''')
         # Инициализация ViewModel
         self.viewmodel = ViewModel()
         self.viewmodel.data_changed.connect(self.update_label)
@@ -35,14 +39,38 @@ class MainWindow(QMainWindow):
         self.layout = QVBoxLayout()
         central_widget.setLayout(self.layout)  # Установите макет для центрального виджета
         
-        self.label = QLabel("Нажмите кнопку для получения данных")
+        self.label = QLabel("<b>Нажмите кнопку для запроса накопленных данных</b>")
         self.layout.addWidget(self.label)
         
         self.button_clear = QPushButton('Очистить')
+        self.button_clear.setStyleSheet('''
+            QPushButton {
+                background-color: black;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: darkred;  /* Цвет при наведении */
+            }
+            QPushButton:pressed {
+                background-color: maroon;  /* Цвет при нажатии */
+            }
+        ''')
         self.button_clear.clicked.connect(self.clean_all_plot)
         self.layout.addWidget(self.button_clear)
 
         self.button = QPushButton("Получить данные")
+        self.button.setStyleSheet('''
+            QPushButton {
+                background-color: black;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: darkred;  /* Цвет при наведении */
+            }
+            QPushButton:pressed {
+                background-color: maroon;  /* Цвет при нажатии */
+            }
+        ''')
         self.button.clicked.connect(self.get_data)
         self.layout.addWidget(self.button)
         
@@ -81,39 +109,48 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.splitter)
     
     def clean_all_plot(self):
-        while self.graph_scroll_layout.count() > 0:
+        ''' Удаляет все графики '''
+        while self.graph_scroll_layout.count() > 0: # удаляет все сохраненные графики слева
             item = self.graph_scroll_layout.itemAt(0)
+            if item is not None:  
+                widget = item.widget()
+                if widget is not None:  
+                    widget.deleteLater()
+                    self.graph_scroll_layout.removeItem(item)
+
+        item = self.right_layout.itemAt(0) # удаляет график справа
+        if item is not None:  
             widget = item.widget()
-            if widget is not None:
+            if widget is not None:  
                 widget.deleteLater()
-                self.graph_scroll_layout.removeItem(item)
-        item = self.right_layout.itemAt(0)
-        widget = item.widget()
-        if widget is not None:
-            widget.deleteLater()
-            self.right_layout.removeItem(item)
-            self.count_plot = 0
+                self.right_layout.removeItem(item)
+                self.count_plot = 0
+
             
 
     def update_label(self, data):  # Пришли данные
-        print('Пришли новые данные через сигнал data_changed')
-        self.created_progress_bar(60000)
-        self.count_plot += 1
-
-        new_plot_window = PlotWindow(self.count_plot)  # Создаем новый график
-        new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        try:
-            new_plot_window.plot_data(data)  # Обработка данных для нового графика
-        except Exception as e:
-            print(f"Ошибка при обработке данных для графика: {e}")
-        if self.count_plot == 1:
-            self.right_layout.addWidget(new_plot_window)
+        if str(data).find('Error'):
+            QMessageBox.warning(self, 'Ошибка порта', f'Отказано в доступе!\n пожалуйста проверьте, подключено ли устройство\n {data}')
+            self.viewmodel.disconect_port()
         else:
-            if self.right_layout.count() > 0:
-                old_plot = self.right_layout.itemAt(0).widget() 
-                self.right_layout.removeWidget(old_plot) 
-                self.graph_scroll_layout.addWidget(old_plot)  
+            print('Пришли новые данные через сигнал data_changed')
+            self.created_progress_bar(60000)
+            self.count_plot += 1
+
+            new_plot_window = PlotWindow(self.count_plot)  # Создаем новый график
+            new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            try:
+                new_plot_window.plot_data(data)  # Обработка данных для нового графика
+            except Exception as e:
+                print(f"Ошибка при обработке данных для графика: {e}")
+            if self.count_plot == 1:
                 self.right_layout.addWidget(new_plot_window)
+            else:
+                if self.right_layout.count() > 0:
+                    old_plot = self.right_layout.itemAt(0).widget() 
+                    self.right_layout.removeWidget(old_plot) 
+                    self.graph_scroll_layout.addWidget(old_plot)  
+                    self.right_layout.addWidget(new_plot_window)
 
     def get_data(self):## отправили команду
         self.viewmodel.fetch_data(self.value_sleep)  # Запрос данных из ViewModel
