@@ -1,5 +1,4 @@
-from PyQt5.QtWidgets import QWidget , QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QSpacerItem, QSizePolicy
-import matplotlib.pyplot as plt
+from PyQt5.QtWidgets import QWidget , QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QMessageBox
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -10,15 +9,19 @@ value_plus = 'value_plus'
 value_minus = 'value_minus'
 
 class PlotWindow(QWidget):
+    """
+    <h1>Класс <b>PlotWindow</b> предназначен для создания окна графика и оторбражения кнопок управления графиком.</h1>
 
+    <h3>Атрибуты:</h3>
+    \my_id (list): Номер конктреного экземпляра класса.\n
+    DataManager (int): Экземпляр класса <b>DataManager</b> для обработки данных графика.\n
+    """
     def __init__(self, id):
         super().__init__()
         self.setWindowTitle('Data Plot')
         self.setGeometry(300, 300, 800, 600)
-        self.all_data = []
-        self.count_data = 0
-        self.temp_data = None
         self.my_id = id
+        self.DataManager = DataManager()
         self.layout = QVBoxLayout(self)
         
         # Закрыть
@@ -53,9 +56,9 @@ class PlotWindow(QWidget):
         self.button_value_plus.setStyleSheet('background-color: green')
         self.button_value_plus.clicked.connect(lambda: self.change_plot(value_plus))
         # Уменьшить график по значению
-        self.button_value_minus = QPushButton(f'Уменьшить по значению', self)
+        self.button_value_minus = QPushButton(f'Заглушка', self)
         self.button_value_minus.setStyleSheet('background-color: blue')
-        self.button_value_minus.clicked.connect(lambda: self.change_plot(value_minus))
+        self.button_value_minus.clicked.connect(self.message_None)
 
         self.button_horizont_layout.addWidget(self.button_value_plus)
         self.button_horizont_layout.addWidget(self.button_value_minus)
@@ -76,32 +79,23 @@ class PlotWindow(QWidget):
         
 
         self.layout.addLayout(self.button_horizont_layout)
-    def multiply_pairs(self,date):
-        temp = []
-        for i in range(0, len(date)):
-            if date[i] < 50:
-                temp.append(date[i] * 2)
-        return temp
-        
-    def delim_pairs(self, data):
-        ''' Делит каждое значение '''
-        temp = []
-        for i in range(0 , len(data)):
-            if i + 1 < len(data):
-                temp.append(data[i] / 2)
-            else:
-                temp.append(data[i] / 2)
-        return temp
-    def sum_pairs(self,data):
-        """Суммирует пары элементов в списке."""
-        temp = []
-        for i in range(0, len(data), 2):
-            if i + 1 < len(data):  # Проверка на наличие следующего элемента
-                temp.append(data[i] + data[i + 1])
-            else:
-                temp.append(data[i])
-        return temp
+    def message_None(self):
+        """<h1>Отображает предупреждающее сообщение, если контент не найден.</h1>
+        <h3>Эта функция вызывает диалоговое окно с предупреждением, информируя пользователя о том, что контент отсутствует. 
+        В сообщении предлагается нажимать на другие кнопки.</h3>
+
+        :return: None
+        :raises: None
+        """      
+        QMessageBox.warning(self,'Not Found 404','Контент пока не подвезли и не придумали =(\n пока можете понажимать на другие кнопочки =)')
     def change_plot(self, action):
+        """<h1>Изменяет график в зависимости от действия пользователя</h1>
+        <h3>Эта функция обрабатывает действия пользователя (например, нажатия кнопок) и обновляет график в зависимости от выбранного действия. 
+        Поддерживает увеличение и уменьшение временного диапазона и значений</h3>
+
+        :param self: экземпляр класса, в котором определена функция.
+        :param action: действие, которое пользователь хочет выполнить 
+        """
         if action == time_plus:
             print('нажат PLUS вывод ниже результата')
             self.plot_update(time_plus)
@@ -112,67 +106,66 @@ class PlotWindow(QWidget):
             self.plot_update(value_plus)
         elif action == value_minus:
             self.plot_update(value_minus)
-    def plot_resize_count(self):
-        ''' Рисует новый график из буфера, увеличивая колличество счетов '''
+    def plot_resize_count(self, date):
+        ''' <h1>Рисует новый график из буфера, увеличивая колличество счетов </h1>
+        <h3>Эта функция очищает текущий график и рисует новый на основе переданных данных. Устанавливает метки осей и заголовок графика</h3>
+        
+        :param self: экземпляр класса, в котором определена функция.
+        :param date: данные для построения графика.
+        '''
         self.figure.clear()
         ax = self.figure.add_subplot()
         # ax.stem(range(len(self.all_data[self.count_data])), self.multiply_pairs(self.all_data[self.count_data]))
-        ax.plot(self.temp_data)
+        ax.plot(date)
         ax.set_xlabel('Time')
         ax.set_ylabel('Values')
         ax.set_title(f'Spektr № {self.my_id}')
     def plot_print(self):
-        ''' Рисует обновленный график '''
+        ''' <h1>Рисует обновленный график </h1>
+        <h3 style="color: blue;">Эта функция очищает текущий график и рисует его заново на основе текущих данных из <b>DataManager</b>. 
+        Устанавливает метки осей и заголовок графика.</h3>
+        
+        :param self: экземпляр класса, в котором определена функция.
+        '''
         self.figure.clear()
         ax = self.figure.add_subplot()
         # ax.stem(range(len(self.all_data[self.count_data])), self.all_data[self.count_data])
-        ax.plot(self.all_data[self.count_data])
+        ax.plot(self.DataManager.get_current_data())
         ax.set_xlabel('Time')
         ax.set_ylabel('Values')
         ax.set_title(f'Spektr № {self.my_id}')
     def plot_update(self, action):
-        if self.count_data >= 0:
-            if action == time_minus and self.count_data != 0:
-                self.count_data -= 1
-                self.all_data.pop()
-                self.temp_data = None
-                self.plot_print()
-                print(len(self.all_data))
-                print(f'Всего сохранено список данных {self.count_data}')
-                
-            elif action == time_plus and self.count_data < 6: # plus time
-                
-                self.all_data.append(self.sum_pairs(self.all_data[self.count_data]))
-                self.count_data += 1
-                self.temp_data = None
+        """<h1>Обновляет график в зависимости от действия пользователя.</h1>
+        <h3>Эта функция управляет обновлением данных в зависимости от действий пользователя. Она изменяет данные в <b>DataManager</b> 
+        и вызывает соответствующие функции для обновления графика.</h3>
+        
+        :param self: экземпляр класса, в котором определена функция.
+        :param action: действие, которое пользователь хочет выполнить <b>(например, time_minus, time_plus, value_minus, value_plus)</b>.
+        """
+        if self.DataManager.count_data >= 0:
+            if action == time_minus and self.DataManager.count_data != 0:
+                self.DataManager.remove_data()
                 self.plot_print()
                 
-                print(len(self.all_data))
-                print(f'Всего сохранено список данных {self.count_data}')
+            elif action == time_plus and self.DataManager.count_data < 6: # plus time
+                self.DataManager.sum_data()
+                self.plot_print()
             elif action == value_minus:
                 # TODO изменение по x-ксу уменьшаем
                 print('Заглушка уменьшения порога')
             elif action == value_plus:
-                if self.temp_data is None:
-                    self.temp_data = self.multiply_pairs(self.all_data[self.count_data])
-                else:
-                    self.temp_data = self.multiply_pairs(self.temp_data)
-                self.plot_resize_count()
+                self.plot_resize_count(self.DataManager.multiply_current_data())
                 # TODO изменения по х-ксу увеличиваем, каждый раз *2, что меньше 50
         self.canvas.draw()
 
-    def plot_steam(self,data):
-        self.figure.clear()
-        ax = self.figure.add_subplot()
-
-        ax.stem(range(len(data)), data)
-
-        ax.set_title('Stem Plot')
-        ax.set_xlabel('Index')
-        ax.set_ylabel('Value')
-
-        self.canvas.draw()
     def plot_data(self,data):
+        """<h1>Строит график на основе переданных данных.</h1>
+        </h3>Эта функция очищает текущий график и строит новый на основе переданных данных. 
+        Устанавливает метки осей и заголовок графика, а также обновляет данные в <b>DataManager</b>.</h3>
+
+        :param self: экземпляр класса, в котором определена функция.
+        :param data: данные для построения графика.
+        """
         self.figure.clear()
         ax = self.figure.add_subplot()
         ax.plot(data)
@@ -181,47 +174,120 @@ class PlotWindow(QWidget):
         ax.set_ylabel('Values')
         ax.set_title(f'Spektr № {self.my_id}')
         # Обновление Canvas
-        self.canvas.draw()   
-        self.data = data
-        self.all_data.append(data)
-        print(len(self.all_data))
-        print(f'Всего сохранено список данных {self.count_data}')
+        self.canvas.draw() 
+        self.DataManager.init_data(data)
 
     def increase_size(self):
+        """<h1>Увеличивает размер окна графика и отображает его.</h1>
+        <h3>Эта функция создает новое окно графика с заданным размером, 
+        удаляет кнопку открытия графика и отображает данные из <b>DataManager</b>.</h3>
+
+        :param self:  экземпляр класса, в котором определена функция.
+        """
         self.pl = PlotWindow(self.my_id)
         self.pl.button_open_graph.deleteLater()
         self.pl.resize(800,800)
-        self.pl.plot_data(self.data)
+        self.pl.plot_data(self.DataManager.all_data[0])
         self.pl.canvas.draw
         self.pl.show()
 
 class DataManager:
+    """
+    <h1>Класс <b>DataManager</b> предназначен для управления данными, их суммирования и умножения.</h1>
+
+    <h3>Атрибуты:</h3>
+    \nall_data (list): Список, содержащий все данные.\n
+    count_data (int): Индекс текущего элемента данных.\n
+    temp_data (any): Временное значение для хранения промежуточных данных.
+    """
     def __init__(self):
+        """
+        <h1>Инициализирует новый экземпляр <b>DataManager</b>.</h1>
+        
+        Создает пустой список all_data, устанавливает count_data в 0 и temp_data в None.
+        """
         self.all_data = []
         self.count_data = 0
         self.temp_data = None
 
-    def add_data(self, data):
-        self.all_data.append(data)
+    def sum_pairs(self,data):
+        """<h1>Суммирует пары элементов в списке.</h1>
+        
+        :param data: Список чисел, элементы которого будут суммироваться попарно.
+
+        :return: Список, содержащий суммы пар элементов.
+        """
+        temp = []
+        for i in range(0, len(data), 2):
+            if i + 1 < len(data):  # Проверка на наличие следующего элемента
+                temp.append(data[i] + data[i + 1])
+            else:
+                temp.append(data[i])
+        return temp
+    def sum_data(self):
+        """<h1>Суммирует текущие данные и добавляет результат в <b>all_data</b>.</h1>
+        Этот метод вызывает <b>sum_pairs</b> для суммирования текущих данных и 
+        обновляет счетчик <b>count_data</b>.
+        """
+        self.all_data.append(self.sum_pairs(self.all_data[self.count_data]))
         self.count_data += 1
+        self.temp_data = None
+    def init_data(self, data):
+        """
+        <h1>Инициализирует данные, добавляя их в all_data.</h1>
+
+        :param data: Данные для инициализации, которые будут добавлены в all_data.
+        """
+        self.all_data.append(data)
+        self.temp_data = None
 
     def remove_data(self):
+        """<h1>Удаляет последние данные из <b>all_data</b>.</h1>
+
+        Если count_data больше 0, удаляет последний элемент из <b>all_data</b> и 
+        уменьшает счетчик <b>count_data</b> на 1
+        
+        """
         if self.count_data > 0:
             self.all_data.pop()
             self.count_data -= 1
 
     def get_current_data(self):
+        """
+        <h1>Получает текущие данные.</h1>
+
+        :return: Текущие данные из <b>all_data</b> или <b>None</b>, если данных нет.
+        """
         return self.all_data[self.count_data] if self.count_data < len(self.all_data) else None
 
     def multiply_current_data(self):
+        """
+        <h1>Умножает текущие данные на 2.</h1>
+        
+        Если <b>temp_data</b> равно <b>None</b>, умножает текущие данные. В противном случае 
+        умножает временные данные на 2.
+        
+        :return: Результат умножения текущих или временных данных.
+        """
         if self.temp_data is None:
             self.temp_data = self.multiply_pairs(self.get_current_data())
         else:
             self.temp_data = self.multiply_pairs(self.temp_data)
+        return self.temp_data
 
     def multiply_pairs(self, data):
-        # Реализация умножения пар
-        return [x * 2 for x in data]  # Пример умножения на 2
+        """
+        <h1>Умножает элементы списка на 2, если они меньше 50.</h1>
+
+        :param data: Список чисел для умножения.
+        :return: Список, содержащий элементы, умноженные на 2.
+        """
+        return [x * 2 for x in data if x < 50]  
 
     def get_all_data_length(self):
+        """
+        <h1>Получает длину списка <b>all_data</b>.</h1>
+
+        :return: Количество элементов в <b>all_data</b>.
+        """
         return len(self.all_data)

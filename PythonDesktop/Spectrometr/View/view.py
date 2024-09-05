@@ -162,8 +162,3 @@ class MainWindow(QMainWindow):
         if self.progress_bar is not None:
             self.progress_bar.close()
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
