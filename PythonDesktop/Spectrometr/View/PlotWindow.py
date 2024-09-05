@@ -14,8 +14,8 @@ class PlotWindow(QWidget):
     <h1>Класс <b>PlotWindow</b> предназначен для создания окна графика и оторбражения кнопок управления графиком.</h1>
 
     <h3>Атрибуты:</h3>
-    my_id (list): Номер конктреного экземпляра класса.\n
-    DataManager (int): Экземпляр класса <b>DataManager</b> для обработки данных графика.\n
+    my_id (int): Номер конктреного экземпляра класса.\n
+    DataManager (): Экземпляр класса <b>DataManager</b> для обработки данных графика.\n
     """
     def __init__(self, id):
         super().__init__()
@@ -98,43 +98,13 @@ class PlotWindow(QWidget):
         :param action: действие, которое пользователь хочет выполнить 
         """
         if action == time_plus:
-            print('нажат PLUS вывод ниже результата')
             self.plot_update(time_plus)
         elif action == time_minus:
-            print('нажат MINUS вывод ниже результата')
             self.plot_update(time_minus)
         elif action == value_plus:
             self.plot_update(value_plus)
         elif action == value_minus:
             self.plot_update(value_minus)
-    def plot_resize_count(self, date):
-        ''' <h1>Рисует новый график из буфера, увеличивая колличество счетов </h1>
-        <h3>Эта функция очищает текущий график и рисует новый на основе переданных данных. Устанавливает метки осей и заголовок графика</h3>
-        
-        :param self: экземпляр класса, в котором определена функция.
-        :param date: данные для построения графика.
-        '''
-        self.figure.clear()
-        ax = self.figure.add_subplot()
-        # ax.stem(range(len(self.all_data[self.count_data])), self.multiply_pairs(self.all_data[self.count_data]))
-        ax.plot(date)
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Values')
-        ax.set_title(f'Spektr № {self.my_id}')
-    def plot_print(self):
-        ''' <h1>Рисует обновленный график </h1>
-        <h3 style="color: blue;">Эта функция очищает текущий график и рисует его заново на основе текущих данных из <b>DataManager</b>. 
-        Устанавливает метки осей и заголовок графика.</h3>
-        
-        :param self: экземпляр класса, в котором определена функция.
-        '''
-        self.figure.clear()
-        ax = self.figure.add_subplot()
-        # ax.stem(range(len(self.all_data[self.count_data])), self.all_data[self.count_data])
-        ax.plot(self.DataManager.get_current_data())
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Values')
-        ax.set_title(f'Spektr № {self.my_id}')
     def plot_update(self, action):
         """<h1>Обновляет график в зависимости от действия пользователя.</h1>
         <h3>Эта функция управляет обновлением данных в зависимости от действий пользователя. Она изменяет данные в <b>DataManager</b> 
@@ -156,8 +126,36 @@ class PlotWindow(QWidget):
                 print('Заглушка уменьшения порога')
             elif action == value_plus:
                 self.plot_resize_count(self.DataManager.multiply_current_data())
-                # TODO изменения по х-ксу увеличиваем, каждый раз *2, что меньше 50
+                # изменения по y-ку увеличиваем, каждый раз *2, что меньше 50
         self.canvas.draw()
+    def plot_resize_count(self, date):
+        ''' <h1>Рисует новый график из буфера, увеличивая колличество счетов </h1>
+        <h3>Эта функция очищает текущий график и рисует новый на основе переданных данных. Устанавливает метки осей и заголовок графика</h3>
+        
+        :param self: экземпляр класса, в котором определена функция.
+        :param date: данные для построения графика.
+        '''
+        self.figure.clear()
+        ax = self.figure.add_subplot()
+        # ax.stem(range(len(self.DataManager.get_current_data())), self.DataManager.get_current_data())
+        ax.plot(date)
+        ax.set_xlabel('Значение кванта')
+        ax.set_ylabel('Колличество квантов')
+        ax.set_title(f'Spektr № {self.my_id}')
+    def plot_print(self):
+        ''' <h1>Рисует обновленный график </h1>
+        <h3 style="color: blue;">Эта функция очищает текущий график и рисует его заново на основе текущих данных из <b>DataManager</b>. 
+        Устанавливает метки осей и заголовок графика.</h3>
+        
+        :param self: экземпляр класса, в котором определена функция.
+        '''
+        self.figure.clear()
+        ax = self.figure.add_subplot()
+        # ax.stem(range(len(self.DataManager.get_current_data()), self.DataManager.get_current_data())
+        ax.plot(self.DataManager.get_current_data())
+        ax.set_xlabel('Значение кванта')
+        ax.set_ylabel('Колличество квантов')
+        ax.set_title(f'Spektr № {self.my_id}')
 
     def plot_data(self,data):
         """<h1>Строит график на основе переданных данных.</h1>
@@ -171,8 +169,8 @@ class PlotWindow(QWidget):
         ax = self.figure.add_subplot()
         ax.plot(data)
         # ax.stem(range(len(data)), data)
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Values')
+        ax.set_xlabel('Значение кванта')
+        ax.set_ylabel('Колличество квантов')
         ax.set_title(f'Spektr № {self.my_id}')
         # Обновление Canvas
         self.canvas.draw() 

@@ -25,6 +25,6 @@ def git_add_and_commit(commit_message):
 if __name__ == "__main__":
     script_to_run = 'clear_cached.py'
     run_script(script_to_run)
-    commit_message = "Автоматическое обновление после выполнения скрипта."
+    commit_message = "Автоматическое обновление после выполнения скрипта.Удалил отладочные принты и закомиченное"
 
     git_add_and_commit(commit_message)

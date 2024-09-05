@@ -130,7 +130,6 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, 'Ошибка порта', f'Отказано в доступе!\n пожалуйста проверьте, подключено ли устройство\n {data}')
             self.viewmodel.disconect_port()
         else:
-            print('Пришли новые данные через сигнал data_changed')
             self.created_progress_bar(60000)
             self.count_plot += 1
 
