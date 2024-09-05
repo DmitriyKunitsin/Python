@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QWidget , QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QMessageBox
+from PyQt5.QtWidgets import QWidget , QVBoxLayout, QPushButton, QHBoxLayout, QMessageBox
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+
  
 time_plus = 'time_plus'
 time_minus = 'time_minus'
@@ -13,7 +14,7 @@ class PlotWindow(QWidget):
     <h1>Класс <b>PlotWindow</b> предназначен для создания окна графика и оторбражения кнопок управления графиком.</h1>
 
     <h3>Атрибуты:</h3>
-    \my_id (list): Номер конктреного экземпляра класса.\n
+    my_id (list): Номер конктреного экземпляра класса.\n
     DataManager (int): Экземпляр класса <b>DataManager</b> для обработки данных графика.\n
     """
     def __init__(self, id):
