@@ -19,9 +19,9 @@ class PlotWindow(QWidget):
     """
     def __init__(self, id):
         super().__init__()
-        self.setWindowTitle('Data Plot')
-        self.setGeometry(300, 300, 800, 600)
         self.my_id = id
+        self.setWindowTitle(f'График № {id}')
+        self.setGeometry(300, 300, 800, 600)
         self.DataManager = DataManager()
         self.layout = QVBoxLayout(self)
         
@@ -76,8 +76,6 @@ class PlotWindow(QWidget):
 
         self.button_horizont_layout.addWidget(self.button_time_plus)
         self.button_horizont_layout.addWidget(self.button_time_minus)
-
-        
 
         self.layout.addLayout(self.button_horizont_layout)
     def message_None(self):
