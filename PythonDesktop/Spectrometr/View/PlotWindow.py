@@ -8,7 +8,90 @@ time_plus = 'time_plus'
 time_minus = 'time_minus'
 value_plus = 'value_plus'
 value_minus = 'value_minus'
+class PlotSetting:
+    '''
+        **Markers**
 
+        =============   ===============================
+        character       description
+        =============   ===============================
+        ``'.'``         point marker
+        ``','``         pixel marker
+        ``'o'``         circle marker
+        ``'v'``         triangle_down marker
+        ``'^'``         triangle_up marker
+        ``'<'``         triangle_left marker
+        ``'>'``         triangle_right marker
+        ``'1'``         tri_down marker
+        ``'2'``         tri_up marker
+        ``'3'``         tri_left marker
+        ``'4'``         tri_right marker
+        ``'8'``         octagon marker
+        ``'s'``         square marker
+        ``'p'``         pentagon marker
+        ``'P'``         plus (filled) marker
+        ``'*'``         star marker
+        ``'h'``         hexagon1 marker
+        ``'H'``         hexagon2 marker
+        ``'+'``         plus marker
+        ``'x'``         x marker
+        ``'X'``         x (filled) marker
+        ``'D'``         diamond marker
+        ``'d'``         thin_diamond marker
+        ``'|'``         vline marker
+        ``'_'``         hline marker
+        =============   ===============================
+
+        **Line Styles**
+
+        =============    ===============================
+        character        description
+        =============    ===============================
+        ``'-'``          solid line style
+        ``'--'``         dashed line style
+        ``'-.'``         dash-dot line style
+        ``':'``          dotted line style
+        =============    ===============================
+
+        Example format strings::
+
+            'b'    # blue markers with default shape
+            'or'   # red circles
+            '-g'   # green solid line
+            '--'   # dashed line with default color
+            '^k:'  # black triangle_up markers connected by a dotted line
+
+        **Colors**
+
+        The supported color abbreviations are the single letter codes
+
+        =============    ===============================
+        character        color
+        =============    ===============================
+        ``'b'``          blue
+        ``'g'``          green
+        ``'r'``          red
+        ``'c'``          cyan
+        ``'m'``          magenta
+        ``'y'``          yellow
+        ``'k'``          black
+        ``'w'``          white
+        =============    ===============================
+    '''
+    def __init__(self, color='green', marker=',', linestyle='dashed'):
+        self.color = color
+        self.marker = marker
+        self.linestyle = linestyle
+    def get_plot_parag(self):
+        """
+        :return: Возвращает параметры графика в виде словаря.
+        """
+
+        return { # словарь с параметрами
+        'color':self.color,
+        'marker':self.marker,
+        'linestyle':self.linestyle
+    }
 class PlotWindow(QWidget):
     """
     <h1>Класс <b>PlotWindow</b> предназначен для создания окна графика и оторбражения кнопок управления графиком.</h1>
@@ -16,6 +99,8 @@ class PlotWindow(QWidget):
     <h3>Атрибуты:</h3>
     my_id (int): Номер конктреного экземпляра класса.\n
     DataManager (): Экземпляр класса <b>DataManager</b> для обработки данных графика.\n
+    PlotSetting (): Экземпляр класс <b>PlotSetting</b> для установки параметров графика
+    Пример использования : PlotSetting(color='blue', marker='o', linestyle='solid'), если не указать, то применятся дефолтные настройки
     """
     def __init__(self, id):
         super().__init__()
@@ -23,6 +108,7 @@ class PlotWindow(QWidget):
         self.setWindowTitle(f'График № {id}')
         self.setGeometry(300, 300, 800, 600)
         self.DataManager = DataManager()
+        self.PlotSetting = PlotSetting() # PlotSetting(color='blue', marker='o', linestyle='solid')
         self.layout = QVBoxLayout(self)
         
         # Закрыть
@@ -48,30 +134,86 @@ class PlotWindow(QWidget):
         
         # Кнопка для увеличения графика
         self.button_open_graph = QPushButton(f'Открыть график {self.my_id}')
+        self.button_open_graph.setStyleSheet('''
+            QPushButton {
+                background-color: white;
+                color: blue;
+            }
+            QPushButton:hover {
+                background-color: darkgrey;  /* Цвет при наведении */
+            }
+            QPushButton:pressed {
+                background-color: maroon;  /* Цвет при нажатии */
+            }
+        ''')
         self.button_open_graph.clicked.connect(self.increase_size)
         self.layout.addWidget(self.button_open_graph)
 
         self.button_horizont_layout = QHBoxLayout()
         # Увеличить график по значению
         self.button_value_plus = QPushButton(f'Увеличить чувствительность нижнего значения', self)
-        self.button_value_plus.setStyleSheet('background-color: green')
+        self.button_value_plus.setStyleSheet('''
+            QPushButton {
+                background-color: green;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: darkgreen;  /* Цвет при наведении */
+            }
+            QPushButton:pressed {
+                background-color: maroon;  /* Цвет при нажатии */
+            }
+        ''')
         self.button_value_plus.clicked.connect(lambda: self.change_plot(value_plus))
         # Уменьшить график по значению
         self.button_value_minus = QPushButton(f'Заглушка', self)
-        self.button_value_minus.setStyleSheet('background-color: blue')
+        self.button_value_minus.setStyleSheet('''
+            QPushButton {
+                background-color: blue;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: darkblue;  /* Цвет при наведении */
+            }
+            QPushButton:pressed {
+                background-color: maroon;  /* Цвет при нажатии */
+            }
+        ''')
         self.button_value_minus.clicked.connect(self.message_None)
 
         self.button_horizont_layout.addWidget(self.button_value_plus)
         self.button_horizont_layout.addWidget(self.button_value_minus)
 
         # Увеличить график по Времени
-        self.button_time_plus = QPushButton(f'Увеличить по времени', self)
-        self.button_time_plus.setStyleSheet('background-color: green')
+        self.button_time_plus = QPushButton(f'Сжать значения квантов', self)
+        self.button_time_plus.setStyleSheet('''
+            QPushButton {
+                background-color: green;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: darkgreen;  /* Цвет при наведении */
+            }
+            QPushButton:pressed {
+                background-color: maroon;  /* Цвет при нажатии */
+            }
+        ''')
         self.button_time_plus.clicked.connect(lambda: self.change_plot(time_plus))
 
         # Уменьшить график по времени
-        self.button_time_minus = QPushButton(f'Уменьшить по времени', self)
-        self.button_time_minus.setStyleSheet('background-color: blue')
+        self.button_time_minus = QPushButton(f'Вернуть обратно значения квантов', self)
+        self.button_time_minus.setStyleSheet('''
+            QPushButton {
+                background-color: blue;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: darkblue;  /* Цвет при наведении */
+            }
+            QPushButton:pressed {
+                background-color: maroon;  /* Цвет при нажатии */
+            }
+        ''')
         self.button_time_minus.clicked.connect(lambda: self.change_plot(time_minus))
 
         self.button_horizont_layout.addWidget(self.button_time_plus)
@@ -136,7 +278,7 @@ class PlotWindow(QWidget):
         self.figure.clear()
         ax = self.figure.add_subplot()
         # ax.stem(range(len(self.DataManager.get_current_data())), self.DataManager.get_current_data())
-        ax.plot(date)
+        ax.plot(date, **self.PlotSetting.get_plot_parag())
         ax.set_xlabel('Значение кванта')
         ax.set_ylabel('Колличество квантов')
         ax.set_title(f'Spektr № {self.my_id}')
@@ -150,7 +292,7 @@ class PlotWindow(QWidget):
         self.figure.clear()
         ax = self.figure.add_subplot()
         # ax.stem(range(len(self.DataManager.get_current_data()), self.DataManager.get_current_data())
-        ax.plot(self.DataManager.get_current_data())
+        ax.plot(self.DataManager.get_current_data(),**self.PlotSetting.get_plot_parag())
         ax.set_xlabel('Значение кванта')
         ax.set_ylabel('Колличество квантов')
         ax.set_title(f'Spektr № {self.my_id}')
@@ -165,7 +307,7 @@ class PlotWindow(QWidget):
         """
         self.figure.clear()
         ax = self.figure.add_subplot()
-        ax.plot(data)
+        ax.plot(data, **self.PlotSetting.get_plot_parag())
         # ax.stem(range(len(data)), data)
         ax.set_xlabel('Значение кванта')
         ax.set_ylabel('Колличество квантов')
