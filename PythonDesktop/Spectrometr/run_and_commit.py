@@ -18,6 +18,7 @@ def git_add_and_commit(commit_message):
         subprocess.run(['git', 'status'], check=True)
         subprocess.run(['git', 'add', '.'], check=True)
         subprocess.run(['git', 'commit', '-m', commit_message], check=True)
+        subprocess.run(['git', 'status'], check=True)
         print(f"{Colors.BLUE}Изменения успешно добавлены и закоммичены.{Colors.RESET}")
     except subprocess.CalledProcessError as e:
         print(f"{Colors.RED}Ошибка при добавлении или коммите: {e}{Colors.RESET}")
