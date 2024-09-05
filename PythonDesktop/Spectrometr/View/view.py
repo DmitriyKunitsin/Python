@@ -9,7 +9,7 @@ try:
     from View.Menubar.menubar import CustomMenuBar
     from View.toolbar import CustomToolBar
     from View.ProgressBar import CustomProgressBar
-    from View.PlotWindow import PlotWindow
+    from View.PlotFolder.PlotWindow import PlotWindow
 except ImportError as e:
     print(f'Ошибка импорта: {e}')
 

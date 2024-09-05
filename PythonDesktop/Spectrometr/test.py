@@ -8,7 +8,7 @@
 #             temp.append(data[i])
 #     print(f'temp len = {len(temp)}')
 #     return temp
- 
+import copy
 def delim_pairs(data):
     ''' Делит каждое значение '''
     temp = []
@@ -101,3 +101,20 @@ print(all_data)
 # print('\n\n')
 # all_data.append(delim_pairs(data1))
 # print(all_data)
+print('\n\n')
+a = [1,2,3]
+b = a # ссылка на объект а
+b.append(4)
+print('a =',a)
+b.pop()
+
+b = copy.copy(a) # поверхностная копия
+b.append(4)
+print('a =',a)
+print('b =',b)
+
+a = [[1, 2], [3, 4]]
+b = copy.deepcopy(a) # глубокая копия
+b[0].append(5)
+print('a =',a)
+print('b =',b)

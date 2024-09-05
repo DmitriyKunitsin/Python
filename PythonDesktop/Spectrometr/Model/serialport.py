@@ -20,7 +20,7 @@ class SerialPort(QObject):
         # Имитация асинхронного чтения данных
         print('sleep = ', value_sleep)
         # time.sleep(float(value_sleep))
-        numbers = np.random.randint(1, 10, size=8191).tolist()
+        numbers = np.random.randint(1, 1700, size=8191).tolist()
         self.data_received.emit(numbers) # Отправляем данные на сигнал
     
     def list_ports(self):
