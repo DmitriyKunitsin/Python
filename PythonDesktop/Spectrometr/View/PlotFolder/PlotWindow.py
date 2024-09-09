@@ -286,7 +286,7 @@ class PlotWindow(QWidget):
         Если все параметры выбраны, обновляется график. В противном случае выводится предупреждение.
 
         :return: None
-        :raises ValueError: Если какие-либо параметры не выбраны.
+        :raises QMessageBox.warning: Если какие-либо параметры не выбраны.
         """
         if self.plot_color and self.plot_line and self.plot_color is not None:
             self.plot_print()

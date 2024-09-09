@@ -47,22 +47,26 @@ class SerialPort(QObject):
                 data_list = []
                 i = 0
                 last_received_time = time.time()
-                timeout_duration = 2 # Время ожидания окончания пакета в секундах
+                timeout_duration = 4 # Время ожидания окончания пакета в секундах
                 while self.running:
                     if ser.in_waiting > 0:
                         line = ser.readline()  # Читаем строку
                         if line:
-                            decoded_line = line.decode('utf-8', errors='ignore').strip()
-                            
-                            if decoded_line.isdigit():
-                                last_received_time = time.time() 
-                                data_list.append(int(decoded_line))
-                    # Проверяем таймаут
+                                try:
+                                    numbers = [int.from_bytes(line[j:j+1], byteorder='little') for j in range(0, len(line))]
+                                    for i in numbers:
+                                        data_list.append(i)
+                                    last_received_time = time.time()  # Обновляем время последнего получения данных
+                                except ValueError as e:
+                                    print(f"Ошибка при преобразовании: {e}")
+                    # Проверка таймаута
                     if time.time() - last_received_time > timeout_duration and data_list:
                         print(f"Получен пакет № {i+1}")
+                        print(f'len : {len(data_list)}')
                         self.data_received.emit(data_list)
                         i+=1
                         data_list.clear() # очистка списка
+                        
         except serial.SerialException as e:
             print(f'Ошибка подключения к порту: {e}')
             error = [f'Error : {e}']
