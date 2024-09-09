@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QWidget , QVBoxLayout, QPushButton, QHBoxLayout, QMessageBox, QComboBox
+from PyQt5.QtWidgets import QWidget , QVBoxLayout, QPushButton, QHBoxLayout, QMessageBox, QComboBox, QAction, QMenuBar
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from View.PlotFolder.PlotSetting import PlotSetting
 from View.PlotFolder.DataManager import DataManager
+from View.PlotFolder.PlotFile import PlotFile
 
 time_plus = 'time_plus'
 time_minus = 'time_minus'
@@ -57,9 +58,11 @@ class PlotWindow(QWidget):
         ## Линии
         self.combo_lines_selector = QComboBox()
         self.add_all_lines()
+        self.combo_lines_selector.currentTextChanged.connect(self.selected_line)
         ## Маркеры
         self.combo_markers_selector = QComboBox()
         self.add_all_markers()
+        self.combo_markers_selector.currentTextChanged.connect(self.selected_marker)
 
         self.setting_plot_layout.addWidget(self.combo_colors_selector)
         self.setting_plot_layout.addWidget(self.combo_lines_selector)
@@ -67,12 +70,36 @@ class PlotWindow(QWidget):
 
         self.layout.addWidget(self.setting_plot_widget)
 
-
-        ####
+        # self.button_update_plot = QPushButton('Обновить настройки графика')
+        # self.button_update_plot.setStyleSheet('''
+        #     QPushButton {
+        #         background-color: white;
+        #         color: blue;
+        #     }
+        #     QPushButton:hover {
+        #         background-color: darkgrey;  /* Цвет при наведении */
+        #     }
+        #     QPushButton:pressed {
+        #         background-color: maroon;  /* Цвет при нажатии */
+        #     }
+        # ''')
+        # self.button_update_plot.clicked.connect(self.update_setting_plot)
+        # self.layout.addWidget(self.button_update_plot)
         self.layout.addWidget(self.button_exit)
-        self.figure = Figure()
+        self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
         self.layout.addWidget(self.canvas)
+        #########################################
+        # МЕНЮ ГРАФИКА
+        menubar = QMenuBar()
+        file_menu = menubar.addMenu('График')
+
+        save_action = QAction('Сохранить изображение графика', self)
+        save_action.triggered.connect(lambda: PlotFile.save_plot(self.figure))
+        file_menu.addAction(save_action)
+
+        self.layout.addWidget(menubar)
+        #########################################
         
         # Кнопка для увеличения графика
         self.button_open_graph = QPushButton(f'Открыть график {self.my_id}')
@@ -162,31 +189,109 @@ class PlotWindow(QWidget):
         self.button_horizont_layout.addWidget(self.button_time_minus)
 
         self.layout.addLayout(self.button_horizont_layout)
-    #############################################################
-    # 1. написать доку
-    # 2. дописать выбор
     def add_all_colors(self):
+        """Добавляет все доступные <b>цвета</b> в выпадающий список.
+
+        Этот метод получает все доступные цвета из настройки графика и добавляет их в 
+        выпадающий список выбора цветов. Также добавляется текст по умолчанию.
+
+        :return: None
+        """
         colors = PlotSetting.get_all_colors()
-        default_text = 'Выберите...'
+        default_text = 'Выберите цвет...'
         self.combo_colors_selector.addItem(default_text)
-        self.combo_colors_selector.addItems(color for color in colors)
+        self.combo_colors_selector.addItems(distrip for color, distrip in colors)
     def add_all_lines(self):
+        """Добавляет все доступные <b>линии</b> в выпадающий список.
+
+        Этот метод получает все доступные линии из настройки графика и добавляет их в 
+        выпадающий список выбора линий. Также добавляется текст по умолчанию.
+
+        :return: None
+        """
         lines = PlotSetting.get_all_line()
-        default_text = 'Выберите...'
+        default_text = 'Выберите линию...'
         self.combo_lines_selector.addItem(default_text)
-        self.combo_lines_selector.addItems(line for line in lines)
+        self.combo_lines_selector.addItems(distrip for line, distrip in lines)
     def add_all_markers(self):
+        """Добавляет все доступные <b>маркеры</b> в выпадающий список.
+
+        Этот метод получает все доступные маркеры из настройки графика и добавляет их в 
+        выпадающий список выбора маркеров. Также добавляется текст по умолчанию.
+
+        :return: None
+        """
         merkers = PlotSetting.get_all_markers()
-        default_text = 'Выберите...'
+        default_text = 'Выберите маркер...'
         self.combo_markers_selector.addItem(default_text)
         self.combo_markers_selector.addItems(distrip for marker, distrip in merkers)
     def selected_color(self):
+        """Передает выбранный <b>цвет</b> переменной класса и обновляет график.
+
+        Этот метод проверяет выбранный цвет в выпадающем списке и обновляет 
+        соответствующую переменную класса. Если выбранный индекс не равен 0,
+        вызывается метод для обновления графика.
+
+        :return: None
+        :raises ValueError: Если выбранный цвет недоступен.
+        """
         index = self.combo_colors_selector.currentIndex()
-        if index is not 0:
-            color = self.combo_colors_selector.itemText(index)
-            print(f'Выбранный цвет {color}')
-            self.plot_color = color
-    #################################################################
+        if index != 0:
+            distrip = self.combo_colors_selector.itemText(index)
+            colors = PlotSetting.get_all_colors()
+            for color, dis in colors:
+                if distrip in dis:
+                    self.plot_color = color
+                    self.plot_print()
+    def selected_marker(self):
+        """Передает выбранный <b>маркер</b> переменной класса и обновляет график.
+
+        Этот метод проверяет выбранный маркер в выпадающем списке и обновляет 
+        соответствующую переменную класса. Если выбранный индекс не равен 0,
+        вызывается метод для обновления графика.
+
+        :return: None
+        :raises ValueError: Если выбранный маркер недоступен.
+        """
+        index = self.combo_markers_selector.currentIndex()
+        if index != 0:
+            distrip = self.combo_markers_selector.itemText(index)
+            markers = PlotSetting.get_all_markers()
+            for marker, dis in markers:
+                if distrip in dis:
+                    self.plot_marker = marker
+                    self.plot_print()
+    def selected_line(self):
+        """Передает выбранную <b>линию</b> переменной класса и обновляет график.
+
+        Этот метод проверяет выбранную линию в выпадающем списке и обновляет 
+        соответствующую переменную класса. Если выбранный индекс не равен 0,
+        вызывается метод для обновления графика.
+
+        :return: None
+        :raises ValueError: Если выбранная линия недоступна.
+        """
+        index = self.combo_lines_selector.currentIndex()
+        if index != 0:
+            distrip = self.combo_lines_selector.itemText(index)
+            lines = PlotSetting.get_all_line()
+            for line, dis in lines:
+                if distrip in dis:
+                    self.plot_line = line
+                    self.plot_print()
+    def update_setting_plot(self):
+        """Обновляет настройки графика на основе выбранных параметров.
+
+        Этот метод проверяет, выбраны ли все необходимые параметры (цвет, линия, маркер).
+        Если все параметры выбраны, обновляется график. В противном случае выводится предупреждение.
+
+        :return: None
+        :raises ValueError: Если какие-либо параметры не выбраны.
+        """
+        if self.plot_color and self.plot_line and self.plot_color is not None:
+            self.plot_print()
+        else:
+            QMessageBox.warning(self, 'Не корректные настройки', 'Выберите пожалуйста все настройки графика')
     def message_None(self):
         """<h1>Отображает предупреждающее сообщение, если контент не найден.</h1>
         <h3>Эта функция вызывает диалоговое окно с предупреждением, информируя пользователя о том, что контент отсутствует. 
@@ -245,24 +350,45 @@ class PlotWindow(QWidget):
         self.figure.clear()
         ax = self.figure.add_subplot()
         # ax.stem(range(len(self.DataManager.get_current_data())), self.DataManager.get_current_data())
-        ax.plot(date, **self.PlotSetting.get_plot_parag())
+        ax.plot(date, **self.PlotSetting.get_plot_parag(self.plot_color, self.plot_marker, self.plot_line))
         ax.set_xlabel('Значение кванта')
         ax.set_ylabel('Колличество квантов')
         ax.set_title(f'Spektr № {self.my_id}')
+        # ax.set_yscale('log')
     def plot_print(self):
         ''' <h1>Рисует обновленный график </h1>
         <h3 style="color: blue;">Эта функция очищает текущий график и рисует его заново на основе текущих данных из <b>DataManager</b>. 
         Устанавливает метки осей и заголовок графика.</h3>
         
+        <strong>Внимание!</strong> Используйте эту функцию только тогда, когда необходимо обновить график с текущими значениями.
+
         :param self: экземпляр класса, в котором определена функция.
         '''
         self.figure.clear()
         ax = self.figure.add_subplot()
-        # ax.stem(range(len(self.DataManager.get_current_data()), self.DataManager.get_current_data())
-        ax.plot(self.DataManager.get_current_data(),**self.PlotSetting.get_plot_parag())
+
+        # Получение текущих данных
+        current_data = self.DataManager.get_current_data()
+        if not current_data:
+            print("Текущие данные пусты!")
+
+        # Построение первого графика
+        ax.plot(current_data, **self.PlotSetting.get_plot_parag(self.plot_color, self.plot_marker, self.plot_line), label='Накопленные импульсы')
+        
+        # # Добавление второго графика для проверки легенды
+        # ax.plot([0, len(current_data) - 1], [min(current_data), max(current_data)], color='red', label='Линия тренда')
+
+        # Установка меток осей и заголовка
         ax.set_xlabel('Значение кванта')
-        ax.set_ylabel('Колличество квантов')
+        ax.set_ylabel('Количество квантов')
         ax.set_title(f'Spektr № {self.my_id}')
+
+        # # Добавление легенды
+        ax.legend(loc='upper right')
+        # ax.set_yscale('log')
+        # Обновление холста
+        self.canvas.draw()
+
 
     def plot_data(self,data):
         """<h1>Строит график на основе переданных данных.</h1>
@@ -274,11 +400,14 @@ class PlotWindow(QWidget):
         """
         self.figure.clear()
         ax = self.figure.add_subplot()
-        ax.plot(data, **self.PlotSetting.get_plot_parag())
+        ax.plot(data, **self.PlotSetting.get_plot_parag(), label='Накопленные импульсы')
         # ax.stem(range(len(data)), data)
         ax.set_xlabel('Значение кванта')
         ax.set_ylabel('Колличество квантов')
         ax.set_title(f'Spektr № {self.my_id}')
+
+        ax.legend(loc='upper right')
+        # ax.set_yscale('log')
         # Обновление Canvas
         self.canvas.draw() 
         self.DataManager.init_data(data)

@@ -9,6 +9,8 @@
 #     print(f'temp len = {len(temp)}')
 #     return temp
 import copy
+import matplotlib.pyplot as plt
+import numpy as np
 def delim_pairs(data):
     ''' Делит каждое значение '''
     temp = []
@@ -118,3 +120,64 @@ b = copy.deepcopy(a) # глубокая копия
 b[0].append(5)
 print('a =',a)
 print('b =',b)
+
+markers = (
+    ('.', 'Точки'),
+    (',', 'Пиксель'),
+    ('o', 'Круг'),
+    ('v', 'Треугольник вниз'),
+    ('^', 'Треугольник вверх'),
+    ('<', 'Треугольник влево'),
+    ('>', 'Треугольник вправо'),
+    ('1', 'tri_down'),
+    ('2', 'tri_up'),
+    ('3', 'tri_left'),
+    ('4', 'tri_right'),
+    ('8', 'Восьмиугольник'),
+    ('s', 'Квадрат'),
+    ('p', 'Пятиугольник'),
+    ('P', 'Плюс залитый'),
+    ('*', 'Звезда'),
+    ('h', 'Шестиугольник 1'),
+    ('H', 'Шестиугольник 2'),
+    ('+', 'Плюс'),
+    ('x', 'x'),
+    ('X', 'x залитый'),
+    ('D', 'Ромб'),
+    ('d', 'Тонкий ромб'),
+    ('|', 'Вертикальная линия'),
+    ('_', 'Горизонтальная линия')
+)
+myid =[]
+mymerker = []
+mydistrip = []
+for  marker, distrip in markers:
+    #  myid.append(id)
+     mymerker.append(marker)
+     mydistrip.append(distrip)
+
+# print(myid)
+print(mymerker)
+print(mydistrip)
+
+for marker,dis in markers:
+     if mydistrip[2] in dis:
+          print(marker, dis)
+
+
+
+# Пример данных
+x = np.arange(10)
+y1 = np.array([2000] * 10)
+y2 = np.array([45] * 10)
+
+plt.figure()
+plt.plot(x, y1, label='Значения 2000')
+plt.plot(x, y2, label='Значения 45')
+
+# Установка логарифмической шкалы
+plt.yscale('log')
+
+plt.legend()
+plt.show()
+
