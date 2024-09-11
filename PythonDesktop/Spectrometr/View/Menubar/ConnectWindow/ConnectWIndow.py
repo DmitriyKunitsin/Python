@@ -81,7 +81,7 @@ class ConnectWindow(QWidget):
     def list_baudrate(self):
         default_text = 'Выберите...'
         self.device_baudrate.addItem(default_text)
-        baud = ([9600,14400,19200,28800,38400, 56000, 57600, 115200, 128000,256000, 460800])
+        baud = ([9600,14400,19200,28800,38400, 56000, 57600, 115200, 128000,256000, 460800, 1000000])
         self.device_baudrate.addItems([str(i) for i in baud])
 
     def connect_device(self):

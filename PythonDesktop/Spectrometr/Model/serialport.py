@@ -1,5 +1,6 @@
 import time
 import random
+import struct
 import threading
 import serial
 import serial.tools.list_ports
@@ -39,33 +40,62 @@ class SerialPort(QObject):
     def input_selected_baudrate(self, baud):
         self.selected_baudrate = int(baud)
 
+    # def frecyh_data(self, time, porog, ):
+    def max_value(self,data):
+        temp = data[0]
+        for i in data:
+            if temp < i:
+                temp = i 
+        return temp
+    def parse_data(self,data):
+        parsed_values = []
+        
+        # (2 байта для uint16)
+        size_of_int = 2
+        
+        # Обход данных с шагом по размеру целого числа
+        for i in range(0, len(data), size_of_int):
+            if i + 2 < len(data):
+                # Извлечение подстроки и распаковка
+                chunk = data[i:i + size_of_int]
+                if len(chunk) == size_of_int:
+                    value = struct.unpack('<H', chunk)[0]  # '>H' - big-endian uint16
+                    parsed_values.append(value)
+        
+        return parsed_values
+    def parse_data_byte(self,data):
+        data_list = []
+        numbers = [int.from_bytes(data[j:j+2], byteorder='big') for j in range(0, len(data), 2)]
+        for i in numbers:
+            data_list.append(i)
+        return data_list
     def read_uart(self):
         self.running = True
         print(f"Подключено к {self.selected_port}. Введенная скорость = {self.selected_baudrate}. Начинаем чтение данных...")
         try:
             with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1, bytesize=8, parity='N', stopbits=1) as ser:
-                data_list = []
+                data_list = bytearray()
                 i = 0
                 last_received_time = time.time()
-                timeout_duration = 4 # Время ожидания окончания пакета в секундах
+                timeout_duration = 1 # Время ожидания окончания пакета в секундах
                 while self.running:
-                    if ser.in_waiting > 0:
-                        line = ser.readline()  # Читаем строку
+                        line = ser.readline(ser.in_waiting)  # Читаем строку
                         if line:
                                 try:
-                                    numbers = [int.from_bytes(line[j:j+1], byteorder='little') for j in range(0, len(line))]
-                                    for i in numbers:
-                                        data_list.append(i)
+                                    data_list.extend(line)
                                     last_received_time = time.time()  # Обновляем время последнего получения данных
                                 except ValueError as e:
                                     print(f"Ошибка при преобразовании: {e}")
-                    # Проверка таймаута
-                    if time.time() - last_received_time > timeout_duration and data_list:
-                        print(f"Получен пакет № {i+1}")
-                        print(f'len : {len(data_list)}')
-                        self.data_received.emit(data_list)
-                        i+=1
-                        data_list.clear() # очистка списка
+                        # Проверка таймаута
+                        if time.time() - last_received_time > timeout_duration and data_list:
+                            print(data_list)
+                            data_list = self.parse_data(bytes(data_list))
+                            print(f"Получен пакет № {i+1}")
+                            print(f'len : {len(data_list)}')
+                            print('Пиковое значение : ', self.max_value(data_list))
+                            self.data_received.emit(data_list)
+                            i+=1
+                            data_list.clear() # очистка списка
                         
         except serial.SerialException as e:
             print(f'Ошибка подключения к порту: {e}')
