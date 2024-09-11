@@ -1,6 +1,6 @@
 def squares(numbers):
     sum_square = 0
-    for num in numbers.split():
+    for num in numbers:
         if  num.isdigit() and int(num) % 2 != 0:
             sum_square += int(num) ** 2
     return sum_square
