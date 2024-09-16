@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QMainWindow, QComboBox, QInputDialog, QMessageBox
 from PyQt5.QtGui import QIcon
 
+import numpy as np
+
 connect_file_name_jpg = 'images/connect.jpg'
 
 class ConnectWindow(QWidget):
@@ -14,10 +16,20 @@ class ConnectWindow(QWidget):
         self.initUI()
         self.baudrate = None
         self.device = None
+        self.time = None
+        self.time = None
 
     def initUI(self):
 
         layout = QVBoxLayout()
+
+        self.label_baud = QLabel('Выберите частоту обновления (в секундах)')
+        layout.addWidget(self.label_baud)
+        self.list_time_update = QComboBox()
+        self.set_list_time_upd()
+        self.list_time_update.currentTextChanged.connect(self.selected_time)
+        layout.addWidget(self.list_time_update)
+
         # Выбор устройства
         label_device = QLabel('Выберите устройство')
         layout.addWidget(label_device)
@@ -66,6 +78,24 @@ class ConnectWindow(QWidget):
         else:
             print('Выберите device')
             self.device = None
+    def selected_time(self):
+        index = self.list_time_update.currentIndex()
+        if index != 0:
+            self.time = self.list_time_update.itemText(index)
+            print('selected time',self.time)
+        else:
+            self.time = None
+
+    def populate_combobox(self, combobox, default_text, start, end, unit):
+        combobox.addItem(default_text)
+        if combobox == self.list_time_update:
+            combobox.addItems([f'{i} {unit}' for i in range(5, 61, 5)])
+        else:
+            values = np.arange(start, end + 0.1, 0.1)
+            combobox.addItems([f'{i:.1f}{unit}' for i in values])
+
+    def set_list_time_upd(self):
+        self.populate_combobox(self.list_time_update,'Выберите...', 5, 60, ' Сек')
 
     def select_baudrete(self):
         index = self.device_baudrate.currentIndex()
@@ -85,13 +115,15 @@ class ConnectWindow(QWidget):
         self.device_baudrate.addItems([str(i) for i in baud])
 
     def connect_device(self):
-        if self.device and self.baudrate is not None:
+        if self.device and self.baudrate and self.time is not None:
             self.close()
-            selected = self.device, self.baudrate
+            number = ''.join(filter(str.isdigit, self.time))
+            selected = self.device, self.baudrate, number
+            # text = "5 Сек"
             if selected:
-                name_port, baud = selected
+                name_port, baud, time = selected
                 try:
-                    self.viev_model.select_device(name_port, baud)
+                    self.viev_model.select_device(name_port, baud, time)
                     print("Устройство выбрано:", selected)
                 except ValueError as e:
                     print(e)
@@ -104,4 +136,6 @@ class ConnectWindow(QWidget):
             QMessageBox.warning(self, 'Ошибка ввода', 'Пожалуйста, выберите Baudrate')
         elif self.device is None:
             QMessageBox.warning(self, 'Ошибка ввода', 'Пожалуйста, выберите device')
+        elif self.list_time_update is None:
+            QMessageBox.warning(self, 'Ошибка ввода', 'Пожалуйста, выберите время обновления')
             

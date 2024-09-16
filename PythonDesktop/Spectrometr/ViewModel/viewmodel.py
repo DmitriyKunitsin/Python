@@ -13,6 +13,7 @@ class ViewModel(QObject):
         super().__init__()
         self.model = DataMode()
         self.model.data_update.connect(self.on_data_received)
+        self.time_update = 60000
 
 
     def fetch_data(self, value_sleep=1):
@@ -24,8 +25,9 @@ class ViewModel(QObject):
     def list_devices(self):
         return self.model.list_devices()
     
-    def select_device(self, name_port, baud):
-        self.model.select_device(name_port, baud)
+    def select_device(self, name_port, baud, time):
+        self.model.select_device(name_port, baud, time)
+        self.time_update = time
         self.connect_signal.emit()
 
     def disconect_port(self):

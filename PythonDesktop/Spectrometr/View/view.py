@@ -130,7 +130,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, 'Ошибка порта', f'Отказано в доступе!\n пожалуйста проверьте, подключено ли устройство\n {data}')
             self.viewmodel.disconect_port()
         else:
-            self.created_progress_bar(60000)
+            self.created_progress_bar(int(self.viewmodel.time_update))
             self.count_plot += 1
 
             new_plot_window = PlotWindow(self.count_plot)  # Создаем новый график
@@ -152,7 +152,7 @@ class MainWindow(QMainWindow):
         self.viewmodel.fetch_data(self.value_sleep)  # Запрос данных из ViewModel
         
     def created_progress_bar(self, value_sleep):
-        self.value_sleep = value_sleep
+        self.value_sleep = value_sleep * 1000
         print(f'self.value_sleep = value_sleep : {self.value_sleep}')
         # Прогресс бар под графиков, показывающий прогресс до обновления
         self.progress_bar = CustomProgressBar(self)

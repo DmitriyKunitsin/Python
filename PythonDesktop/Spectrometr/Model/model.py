@@ -26,10 +26,11 @@ class DataMode(QObject):
     def on_data_received(self, data):
         self.data_update.emit(data)
     
-    def select_device(self, name_port, baud):
+    def select_device(self, name_port, baud, time):
         print('select_device')
         self.serial_port.input_selected_port(name_port)
         self.serial_port.input_selected_baudrate(baud)
+        self.serial_port.serial_time = time
         th.Thread(daemon=True,target=self.serial_port.read_uart).start()
 
     def disconect_reading(self):

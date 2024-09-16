@@ -7,6 +7,9 @@ import serial.tools.list_ports
 import numpy as np
 from PyQt5.QtCore import QObject, pyqtSignal
 
+
+from Model.SKLP import SKLP_Serial, SKLP_GGLP_Spectr
+
 class SerialPort(QObject):
     data_received = pyqtSignal(list)
 
@@ -16,13 +19,33 @@ class SerialPort(QObject):
         self.selected_port = None
         self.selected_baudrate = None
         self.running = False
-
+        self.SKLP = None
+        self.serial_time = None
     def start_reading(self, value_sleep):
-        # Имитация асинхронного чтения данных
-        print('sleep = ', value_sleep)
-        # time.sleep(float(value_sleep))
-        numbers = np.random.randint(1, 1700, size=8191).tolist()
-        self.data_received.emit(numbers) # Отправляем данные на сигнал
+        ''' Запускает команду на чтения данных с микроконтроллера
+
+        :param value_sleep: TODO типо передавать сюдда значение ожидания, но не актуально уже
+        
+        :return: Возвращает накопленные данные микроконтроллером 
+        '''
+        # if self.port and self.baud is not None:
+        # port = SKLP_Serial(Baud=self.selected_baudrate,Port=self.selected_port)
+        # sklp = SKLP_GGLP_Spectr(Address=SKLP_GGLP_Spectr.Spectr_Address.GET_YOUR_SEARIAL_NUMBER, Interface=port)
+        if self.SKLP is not None:
+            try:
+                check_connec = self.SKLP.Query_GetID()
+                if check_connec:
+                    answer_packet =  self.SKLP.Query(self.SKLP.Enum_Command.GET_ALL_DATA_SPECTR)
+                    numbers = self.parse_data(answer_packet)
+                    self.data_received.emit(list(numbers)) # Отправляем данные на сигнал
+                else:
+                    raise ValueError('Не удалось найти нужный микроконтроллер, убедитесь, что он подключен')
+            except ValueError as e:
+                print(e)
+        else:
+            print('не подключен к устройству')
+            error = [f'Error : Устройство не подключено']
+            self.data_received.emit(error) 
     
     def list_ports(self):
         ports = serial.tools.list_ports.comports()
@@ -73,43 +96,35 @@ class SerialPort(QObject):
         self.running = True
         print(f"Подключено к {self.selected_port}. Введенная скорость = {self.selected_baudrate}. Начинаем чтение данных...")
         try:
-            with serial.Serial(self.selected_port, self.selected_baudrate, timeout=1, bytesize=8, parity='N', stopbits=1) as ser:
-                data_list = bytearray()
-                i = 0
-                last_received_time = time.time()
-                timeout_duration = 1 # Время ожидания окончания пакета в секундах
+            self.PORT = SKLP_Serial(Port=self.selected_port, Baud=self.selected_baudrate)
+            self.SKLP = SKLP_GGLP_Spectr(Address=SKLP_GGLP_Spectr.Spectr_Address.GET_YOUR_SEARIAL_NUMBER, Interface=self.PORT)
+    
+            try:
                 while self.running:
-                        line = ser.readline(ser.in_waiting)  # Читаем строку
-                        if line:
-                                try:
-                                    data_list.extend(line)
-                                    last_received_time = time.time()  # Обновляем время последнего получения данных
-                                except ValueError as e:
-                                    print(f"Ошибка при преобразовании: {e}")
-                        # Проверка таймаута
-                        if time.time() - last_received_time > timeout_duration and data_list:
-                            print(data_list)
-                            data_list = self.parse_data(bytes(data_list))
-                            print(f"Получен пакет № {i+1}")
-                            print(f'len : {len(data_list)}')
-                            print('Пиковое значение : ', self.max_value(data_list))
-                            self.data_received.emit(data_list)
-                            i+=1
-                            data_list.clear() # очистка списка
-                        
-        except serial.SerialException as e:
-            print(f'Ошибка подключения к порту: {e}')
-            error = [f'Error : {e}']
-            self.data_received.emit(error)
-        except PermissionError as e:
-            error = [f'Error : {e}']
-            self.data_received.emit(error) 
-            print(f'Ошибка доступа к порту: {e}')
-        except Exception as e:
-            error = [f'Error : {e}']
-            self.data_received.emit(error) 
-            print(f'Произошла непредвиденная ошибка: {e}')
-            print('Error ',e)
+                    print('Проверка подключения')
+                    check_connect = self.SKLP.Query_GetID()
+                    if check_connect:
+                        print(f'Ждем ... {self.serial_time} сек')
+                        self.start_reading(1)
+                        time.sleep(float(self.serial_time))
+                    else:
+                        raise ValueError('Устройство не подключено!!')
+                
+            except serial.SerialException as e:
+                print(f'Ошибка подключения к порту: {e}')
+                error = [f'Error : {e}']
+                self.data_received.emit(error)
+            except PermissionError as e:
+                error = [f'Error : {e}']
+                self.data_received.emit(error) 
+                print(f'Ошибка доступа к порту: {e}')
+            except Exception as e:
+                error = [f'Error : {e}']
+                self.data_received.emit(error) 
+                print(f'Произошла непредвиденная ошибка: {e}')
+                print('Error ',e)
+        except:
+            self.serial_time = self.serial_time
         
     def stop_reading(self):
         self.running = False

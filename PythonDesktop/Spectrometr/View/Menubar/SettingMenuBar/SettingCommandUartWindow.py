@@ -19,16 +19,16 @@ class Setting_Command(QWidget):
         self.porog = None
     def initUI(self):
         self.layout = QVBoxLayout()
-        self.h_time_layout = QHBoxLayout()
-        ## Настройка времени сбора платой
-        self.label_baud = QLabel('Выберите частоту обновления (в секундах)')
-        self.h_time_layout.addWidget(self.label_baud)
-        self.list_time_update = QComboBox()
-        self.set_list_time_upd()
-        self.list_time_update.currentTextChanged.connect(self.selected_time)
-        self.h_time_layout.addWidget(self.list_time_update)
+        # self.h_time_layout = QHBoxLayout()
+        # ## Настройка времени сбора платой
+        # self.label_baud = QLabel('Выберите частоту обновления (в секундах)')
+        # self.h_time_layout.addWidget(self.label_baud)
+        # self.list_time_update = QComboBox()
+        # self.set_list_time_upd()
+        # self.list_time_update.currentTextChanged.connect(self.selected_time)
+        # self.h_time_layout.addWidget(self.list_time_update)
 
-        self.layout.addLayout(self.h_time_layout)
+        # self.layout.addLayout(self.h_time_layout)
 
         self.h_voultage_porog = QHBoxLayout()
         ## Настройка резистора (Коэфициент усиления)
@@ -112,11 +112,11 @@ class Setting_Command(QWidget):
             
     def populate_combobox(self, combobox, default_text, start, end, unit):
         combobox.addItem(default_text)
-        if combobox == self.list_time_update:
-            combobox.addItems([f'{i} {unit}' for i in range(5, 61, 5)])
-        else:
-            values = np.arange(start, end + 0.1, 0.1)
-            combobox.addItems([f'{i:.1f}{unit}' for i in values])
+        # if combobox == self.list_time_update:
+        #     combobox.addItems([f'{i} {unit}' for i in range(5, 61, 5)])
+        # else:
+        values = np.arange(start, end + 0.1, 0.1)
+        combobox.addItems([f'{i:.1f}{unit}' for i in values])
 
     def set_list_time_upd(self):
         self.populate_combobox(self.list_time_update,'Выберите...', 5, 60, ' Сек')
