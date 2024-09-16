@@ -123,7 +123,7 @@ class Setting_Command(QWidget):
     #     self.populate_combobox(self.list_time_update,'Выберите...', 5, 60, ' Сек')
 
     def set_list_min_voult(self):
-        self.populate_combobox(self.list_min_porog,self.viev_model.current_configuration(), 0.1, 3.0, ' Вольт')
+        self.populate_combobox(self.list_min_porog,self.viev_model.current_configuration(), 0.1, 3.3, ' Вольт')
 
     def set_list_coefficient_value(self):
         self.populate_combobox(self.list_coefficient_voultage,'Выберите...', 0.1, 3.0, ' Вольт')
