@@ -22,7 +22,10 @@ class DataMode(QObject):
         self.serial_port.list_ports()
         self.serial_port.print_ports()
         return self.serial_port.devices
-    
+    def get_cur_config(self):
+        return self.serial_port.get_current_configuration()
+    def install_new_config(self, porog):
+        self.serial_port.new_configurate(porog)
     def on_data_received(self, data):
         self.data_update.emit(data)
     

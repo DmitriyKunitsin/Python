@@ -24,6 +24,7 @@ class CustomMenuBar(QMenuBar):
     def __init__(self, parent=None, view_model=None):
         super().__init__(parent)
         self.view_model = view_model
+        self.setting_menu = None
 
         # Создаем статусный виджет
         self.status_widget = QWidget()
@@ -80,13 +81,7 @@ class CustomMenuBar(QMenuBar):
 
         connect_menu.addAction(disconect_port_action)
 
-        setting_menu = self.addMenu('Setting')
-
-        setting_uart_command = QAction(QIcon(setting_file_name_jpg), 'Настройки платы', self)
-        setting_uart_command.setStatusTip('Отправка настроек плате')
-        setting_uart_command.triggered.connect(self.open_setting_command_for_stm)
-
-        setting_menu.addAction(setting_uart_command)
+        
 
     def disconect(self):
         ''' Меняет булевое значение в цикле чтения порта'''
@@ -110,5 +105,20 @@ class CustomMenuBar(QMenuBar):
         """Обновляет статус подключения."""
         if is_connected:
             self.status_label.setStyleSheet("background-color: green; border-radius: 10px;")
+            
+            # Проверяем, существует ли меню
+            if self.setting_menu is None:  # Добавляем меню только если его еще нет
+                self.setting_menu = self.addMenu('Setting')
+
+                setting_uart_command = QAction(QIcon(setting_file_name_jpg), 'Настройки платы', self)
+                setting_uart_command.setStatusTip('Отправка настроек плате')
+                setting_uart_command.triggered.connect(self.open_setting_command_for_stm)
+
+                self.setting_menu.addAction(setting_uart_command)
         else:
             self.status_label.setStyleSheet("background-color: red; border-radius: 10px;")
+            
+            # Удаляем меню, если оно существует
+            if self.setting_menu is not None:
+                self.removeAction(self.setting_menu.menuAction())  # Удаляем действие меню
+                self.setting_menu = None  # Сбрасываем ссылку на меню

@@ -19,11 +19,16 @@ class ViewModel(QObject):
     def fetch_data(self, value_sleep=1):
         self.model.read_data(value_sleep) # Запрос данных из модели
 
+    def setting_new_values_configurate(self, porog):
+        self.model.install_new_config(porog)
+
     def on_data_received(seld,data):
         seld.data_changed.emit(data)
 
     def list_devices(self):
         return self.model.list_devices()
+    def current_configuration(self):
+        return self.model.get_cur_config()
     
     def select_device(self, name_port, baud, time):
         self.model.select_device(name_port, baud, time)

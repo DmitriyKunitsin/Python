@@ -5,8 +5,9 @@ import threading
 import serial
 import serial.tools.list_ports
 import numpy as np
+from struct import *
+import struct
 from PyQt5.QtCore import QObject, pyqtSignal
-
 
 from Model.SKLP import SKLP_Serial, SKLP_GGLP_Spectr
 
@@ -52,7 +53,28 @@ class SerialPort(QObject):
         self.devices = []
         for port in ports:
             self.devices.append(port.device)
-
+    def get_current_configuration(self):
+        config = self.SKLP.Query(self.SKLP.Enum_Command.GET_CONFIGURATION)
+        number = struct.unpack('f', config[:4])[0]  # Извлекаем первые 4 байта и преобразуем в float
+        print('Текущие конфигурации',f'{number:.1f}')
+        formated_number = f'{number:.1f}'
+        return formated_number
+    def new_configurate(self, porog):
+        # Удаляем все символы, кроме цифр
+        try:
+            filtered_string = '.'.join(filter(str.isdigit, porog))
+            new_config = self.SKLP.Query(self.SKLP.Enum_Command.SET_CONFIGURATION, pack('f', float(filtered_string)))
+            if not new_config:
+                print('Не удалось установить параметры')
+            else:
+                try:
+                    number = struct.unpack('f', new_config[:4])[0]
+                    print('Успешно установил конфиг : ',f'{number:.1f} Вольта')
+                except:
+                    print('не удалось преобразовать')
+        except:
+            error = [f'Error : Неудалось установить значения конфигурации']
+            self.data_received.emit(error) 
     def print_ports(self):
         for i,port in enumerate(self.devices):
             print(f"{i+1}. {port}")
@@ -63,7 +85,6 @@ class SerialPort(QObject):
     def input_selected_baudrate(self, baud):
         self.selected_baudrate = int(baud)
 
-    # def frecyh_data(self, time, porog, ):
     def max_value(self,data):
         temp = data[0]
         for i in data:
@@ -104,7 +125,7 @@ class SerialPort(QObject):
                     print('Проверка подключения')
                     check_connect = self.SKLP.Query_GetID()
                     if check_connect:
-                        print(f'Ждем ... {self.serial_time} сек')
+                        self.get_current_configuration()
                         self.start_reading(1)
                         time.sleep(float(self.serial_time))
                     else:

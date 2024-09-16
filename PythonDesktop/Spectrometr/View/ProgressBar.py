@@ -16,7 +16,7 @@ class CustomProgressBar(QWidget):
 
     def initProgress(self):
         layout = QVBoxLayout(self)
-        self.label = QLabel('Обновление через...', self)
+        self.label = QLabel(f'Обновление через {self.max_value_timer / 1000} секунд ...', self)
         layout.addWidget(self.label)
 
         self.progress_bar = QProgressBar(self)

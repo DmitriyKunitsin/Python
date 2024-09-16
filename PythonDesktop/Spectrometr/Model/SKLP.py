@@ -1716,6 +1716,7 @@ class SKLP_GGLP_Spectr ( SKLP_Module ):
         new_packet = query.push_quere()
         query.Debbug_print_command(new_packet)
 
+import time
 
 def main():
     port = SKLP_Serial(Baud=1000000, Port='COM17')
@@ -1724,9 +1725,45 @@ def main():
     print(y)
     print(sklp.LogMsg)
     print('------------------------------------------------------------------')
-    x =  sklp.Query(sklp.Enum_Command.GET_ALL_DATA_SPECTR)
+    # x =  sklp.Query(sklp.Enum_Command.GET_ALL_DATA_SPECTR)
+    # print(x)
+    # print('Размер входящего пакета : ',len(x))
+    # print('------------------------------------------------------------------')
+    print('Запрос конфигов')
+    x = sklp.Query(sklp.Enum_Command.GET_CONFIGURATION)
     print(x)
-    print('Размер входящего пакета : ',len(x))
+    # Преобразование с помощью struct: Функция unpack позволяет извлечь данные из байтовой строки в нужном формате. 
+    # В данном случае 'f' обозначает, что мы ожидаем число с плавающей запятой (float).
+    try:
+        number = struct.unpack('f', x[:4])[0]  # Извлекаем первые 4 байта и преобразуем в float
+        print(f'{number:.1f}')
+    except:
+        print('не удалось преобразовать')
+    print('------------------------------------------------------------------')
+    print('Установка конфигов')
+    voltage = 3.2
+    x = sklp.Query(sklp.Enum_Command.SET_CONFIGURATION, pack('f', voltage))
+    # print(x)
+    if not x:
+        print('Не удалось установить параметры')
+    else:
+        try:
+            number = struct.unpack('f', x[:4])[0]
+            print('Успешно установил конфиг : ',f'{number:.1f} Вольта')
+        except:
+            print('не удалось преобразовать')
+    print('------------------------------------------------------------------')
+    print('Запрос конфигов с задержкой 4 секунды, ждем...')
+    time.sleep(4)
+    x = sklp.Query(sklp.Enum_Command.GET_CONFIGURATION)
+    print(x)
+    # Преобразование с помощью struct: Функция unpack позволяет извлечь данные из байтовой строки в нужном формате. 
+    # В данном случае 'f' обозначает, что мы ожидаем число с плавающей запятой (float).
+    try:
+        number = struct.unpack('f', x[:4])[0]  # Извлекаем первые 4 байта и преобразуем в float
+        print(f'{number:.1f}')
+    except:
+        print('не удалось преобразовать')
     # # print(sklp.Commands.GetID)
     # packet_data = [255, 255, 255,255,255,255,255,255,88]
     # # sklp.Spectr_CRC8().CalcCRC8(packet)

@@ -30,16 +30,16 @@ class Setting_Command(QWidget):
 
         # self.layout.addLayout(self.h_time_layout)
 
-        self.h_voultage_porog = QHBoxLayout()
-        ## Настройка резистора (Коэфициент усиления)
-        self.label_voultage = QLabel('Выберите коэфициент усиления')
-        self.h_voultage_porog.addWidget(self.label_voultage)
-        self.list_coefficient_voultage = QComboBox()
-        self.set_list_coefficient_value()
-        self.list_coefficient_voultage.currentTextChanged.connect(self.selected_voultage)
-        self.h_voultage_porog.addWidget(self.list_coefficient_voultage)
+        # self.h_voultage_porog = QHBoxLayout()
+        # ## Настройка резистора (Коэфициент усиления)
+        # self.label_voultage = QLabel('Выберите коэфициент усиления')
+        # self.h_voultage_porog.addWidget(self.label_voultage)
+        # self.list_coefficient_voultage = QComboBox()
+        # self.set_list_coefficient_value()
+        # self.list_coefficient_voultage.currentTextChanged.connect(self.selected_voultage)
+        # self.h_voultage_porog.addWidget(self.list_coefficient_voultage)
 
-        self.layout.addLayout(self.h_voultage_porog)
+        # self.layout.addLayout(self.h_voultage_porog)
         
         ## Настройка напряжения отсечки
         self.h_min_voultage = QHBoxLayout()
@@ -54,7 +54,7 @@ class Setting_Command(QWidget):
 
         self.h_button_control = QHBoxLayout()
 
-        self.button_connect = QPushButton('Отправить')
+        self.button_connect = QPushButton('Установить')
         ## TODO Отправка команды плате и обнуление графика
         self.h_button_control.addWidget(self.button_connect)
         self.button_connect.clicked.connect(self.push_fetch_setting)
@@ -68,7 +68,8 @@ class Setting_Command(QWidget):
 
         self.setLayout(self.layout)
     def push_fetch_setting(self):
-        if self.coefficient and self.time and self.porog is not None:
+        if self.porog is not None:
+            self.viev_model.setting_new_values_configurate(self.porog)
             self.close()
             print(f'Выбраное время :{self.time}\nВыбранный коэфициент усиления :{self.coefficient}\nВыбранный минимальный порог :{self.porog}')
         else:
@@ -111,18 +112,18 @@ class Setting_Command(QWidget):
             self.porog = None
             
     def populate_combobox(self, combobox, default_text, start, end, unit):
-        combobox.addItem(default_text)
+        combobox.addItem(f'Текущий {str(default_text)}')
         # if combobox == self.list_time_update:
         #     combobox.addItems([f'{i} {unit}' for i in range(5, 61, 5)])
         # else:
         values = np.arange(start, end + 0.1, 0.1)
         combobox.addItems([f'{i:.1f}{unit}' for i in values])
 
-    def set_list_time_upd(self):
-        self.populate_combobox(self.list_time_update,'Выберите...', 5, 60, ' Сек')
+    # def set_list_time_upd(self):
+    #     self.populate_combobox(self.list_time_update,'Выберите...', 5, 60, ' Сек')
 
     def set_list_min_voult(self):
-        self.populate_combobox(self.list_min_porog,'Выберите...', 0.1, 3.0, ' Вольт')
+        self.populate_combobox(self.list_min_porog,self.viev_model.current_configuration(), 0.1, 3.0, ' Вольт')
 
     def set_list_coefficient_value(self):
         self.populate_combobox(self.list_coefficient_voultage,'Выберите...', 0.1, 3.0, ' Вольт')
