@@ -29,9 +29,6 @@ class SerialPort(QObject):
         
         :return: Возвращает накопленные данные микроконтроллером 
         '''
-        # if self.port and self.baud is not None:
-        # port = SKLP_Serial(Baud=self.selected_baudrate,Port=self.selected_port)
-        # sklp = SKLP_GGLP_Spectr(Address=SKLP_GGLP_Spectr.Spectr_Address.GET_YOUR_SEARIAL_NUMBER, Interface=port)
         if self.SKLP is not None:
             try:
                 check_connec = self.SKLP.Query_GetID()
@@ -66,7 +63,7 @@ class SerialPort(QObject):
         print('Текущие конфигурации',f'{number:.1f}')
         formated_number = f'{number:.1f}'
         return formated_number
-    def new_configurate(self, porog):
+    def new_configurate(self, porog, time):
         '''Устанавливает новые конфигурации в плате
         
         :param porog: Пороговое значение для считывания спектра
@@ -74,14 +71,15 @@ class SerialPort(QObject):
         
         :raise: В случае не успешной установки значений, возвращает ошибку, которая вызывает окно предуупреждение'''
         try:
-            filtered_string = '.'.join(filter(str.isdigit, porog))
-            new_config = self.SKLP.Query(self.SKLP.Enum_Command.SET_CONFIGURATION, pack('f', float(filtered_string)))
+            new_config = self.SKLP.Query(self.SKLP.Enum_Command.SET_CONFIGURATION, pack('f', float(porog)))
             if not new_config:
                 print('Не удалось установить параметры')
             else:
                 try:
                     number = struct.unpack('f', new_config[:4])[0]
                     print('Успешно установил конфиг : ',f'{number:.1f} Вольта')
+                    self.serial_time = float(time)
+                    print('Успешно установил время обновления : ',f'{time}')
                 except:
                     print('не удалось преобразовать')
         except:
@@ -195,18 +193,20 @@ class SerialPort(QObject):
                 self.read_uart()
             """
             self.running = True
-            print(f"Подключено к {self.selected_port}. Введенная скорость = {self.selected_baudrate}. Начинаем чтение данных...")
             try:
                 self.PORT = SKLP_Serial(Port=self.selected_port, Baud=self.selected_baudrate)
                 self.SKLP = SKLP_GGLP_Spectr(Address=SKLP_GGLP_Spectr.Spectr_Address.GET_YOUR_SEARIAL_NUMBER, Interface=self.PORT)
+                print(f"Подключено к {self.selected_port}. Введенная скорость = {self.selected_baudrate}. Начинаем чтение данных...")
         
                 try:
                     while self.running:
                         print('Проверка подключения')
                         check_connect = self.SKLP.Query_GetID()
                         if check_connect:
+                            print('Устройство подключено')
                             self.get_current_configuration()
                             self.start_reading(1)
+                            print(f'ждем {self.serial_time} секунд')
                             time.sleep(float(self.serial_time))
                         else:
                             raise ValueError('Устройство не подключено!!')

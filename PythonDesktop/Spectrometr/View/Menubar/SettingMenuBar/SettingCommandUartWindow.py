@@ -19,16 +19,16 @@ class Setting_Command(QWidget):
         self.porog = None
     def initUI(self):
         self.layout = QVBoxLayout()
-        # self.h_time_layout = QHBoxLayout()
-        # ## Настройка времени сбора платой
-        # self.label_baud = QLabel('Выберите частоту обновления (в секундах)')
-        # self.h_time_layout.addWidget(self.label_baud)
-        # self.list_time_update = QComboBox()
-        # self.set_list_time_upd()
-        # self.list_time_update.currentTextChanged.connect(self.selected_time)
-        # self.h_time_layout.addWidget(self.list_time_update)
+        self.h_time_layout = QHBoxLayout()
+        ## Настройка времени сбора платой
+        self.label_baud = QLabel('Выберите частоту обновления (в секундах)')
+        self.h_time_layout.addWidget(self.label_baud)
+        self.list_time_update = QComboBox()
+        self.set_list_time_upd()
+        self.list_time_update.currentTextChanged.connect(self.selected_time)
+        self.h_time_layout.addWidget(self.list_time_update)
 
-        # self.layout.addLayout(self.h_time_layout)
+        self.layout.addLayout(self.h_time_layout)
 
         # self.h_voultage_porog = QHBoxLayout()
         # ## Настройка резистора (Коэфициент усиления)
@@ -68,8 +68,8 @@ class Setting_Command(QWidget):
 
         self.setLayout(self.layout)
     def push_fetch_setting(self):
-        if self.porog is not None:
-            self.viev_model.setting_new_values_configurate(self.porog)
+        if self.porog and self.time is not None:
+            self.viev_model.setting_new_values_configurate(self.porog, self.time)
             self.close()
             print(f'Выбраное время :{self.time}\nВыбранный коэфициент усиления :{self.coefficient}\nВыбранный минимальный порог :{self.porog}')
         else:
@@ -90,8 +90,8 @@ class Setting_Command(QWidget):
     def selected_time(self):
         index = self.list_time_update.currentIndex()
         if index != 0:
-            self.time = self.list_time_update.itemText(index)
-            print('selected time',self.time)
+            time = self.list_time_update.itemText(index)
+            self.time = ''.join(filter(str.isdigit, time))
         else:
             self.time = None
 
@@ -106,21 +106,21 @@ class Setting_Command(QWidget):
     def selected_porog(self):
         index = self.list_min_porog.currentIndex()
         if index != 0:
-            self.porog = self.list_min_porog.itemText(index)
-            print('selected porog',self.porog)
+            porog = self.list_min_porog.itemText(index)
+            self.porog = '.'.join(filter(str.isdigit, porog))
         else:
             self.porog = None
             
     def populate_combobox(self, combobox, default_text, start, end, unit):
         combobox.addItem(f'Текущий {str(default_text)}')
-        # if combobox == self.list_time_update:
-        #     combobox.addItems([f'{i} {unit}' for i in range(5, 61, 5)])
-        # else:
-        values = np.arange(start, end + 0.1, 0.1)
-        combobox.addItems([f'{i:.1f}{unit}' for i in values])
+        if combobox == self.list_time_update:
+            combobox.addItems([f'{i} {unit}' for i in range(5, 61, 5)])
+        else:
+            values = np.arange(start, end + 0.1, 0.1)
+            combobox.addItems([f'{i:.1f}{unit}' for i in values])
 
-    # def set_list_time_upd(self):
-    #     self.populate_combobox(self.list_time_update,'Выберите...', 5, 60, ' Сек')
+    def set_list_time_upd(self):
+        self.populate_combobox(self.list_time_update,self.viev_model.current_time(), 5, 60, ' Сек')
 
     def set_list_min_voult(self):
         self.populate_combobox(self.list_min_porog,self.viev_model.current_configuration(), 0.1, 3.3, ' Вольт')

@@ -24,8 +24,8 @@ class DataMode(QObject):
         return self.serial_port.devices
     def get_cur_config(self):
         return self.serial_port.get_current_configuration()
-    def install_new_config(self, porog):
-        self.serial_port.new_configurate(porog)
+    def install_new_config(self, porog, time):
+        self.serial_port.new_configurate(porog, time)
     def on_data_received(self, data):
         self.data_update.emit(data)
     

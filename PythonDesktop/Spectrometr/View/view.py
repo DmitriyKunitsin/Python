@@ -26,6 +26,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(150,150,1600,800)
         self.initUI()
         self.count_plot = 0
+        self.fetch_or_timer = False
         
 
     def initUI(self):
@@ -130,25 +131,29 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, 'Ошибка порта', f'Отказано в доступе!\n пожалуйста проверьте, подключено ли устройство\n {data}')
             self.viewmodel.disconect_port()
         else:
-            self.created_progress_bar(int(self.viewmodel.time_update))
-            self.count_plot += 1
+                if self.fetch_or_timer is True:
+                    self.fetch_or_timer = False
+                else:
+                    self.created_progress_bar(int(self.viewmodel.time_update))
+                self.count_plot += 1
 
-            new_plot_window = PlotWindow(self.count_plot)  # Создаем новый график
-            new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            try:
-                new_plot_window.plot_data(data)  # Обработка данных для нового графика
-            except Exception as e:
-                print(f"Ошибка при обработке данных для графика: {e}")
-            if self.count_plot == 1:
-                self.right_layout.addWidget(new_plot_window)
-            else:
-                if self.right_layout.count() > 0:
-                    old_plot = self.right_layout.itemAt(0).widget() 
-                    self.right_layout.removeWidget(old_plot) 
-                    self.graph_scroll_layout.addWidget(old_plot)  
+                new_plot_window = PlotWindow(self.count_plot)  # Создаем новый график
+                new_plot_window.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+                try:
+                    new_plot_window.plot_data(data)  # Обработка данных для нового графика
+                except Exception as e:
+                    print(f"Ошибка при обработке данных для графика: {e}")
+                if self.count_plot == 1:
                     self.right_layout.addWidget(new_plot_window)
+                else:
+                    if self.right_layout.count() > 0:
+                        old_plot = self.right_layout.itemAt(0).widget() 
+                        self.right_layout.removeWidget(old_plot) 
+                        self.graph_scroll_layout.addWidget(old_plot)  
+                        self.right_layout.addWidget(new_plot_window)
 
     def get_data(self):## отправили команду
+        self.fetch_or_timer = True
         self.viewmodel.fetch_data(self.value_sleep)  # Запрос данных из ViewModel
         
     def created_progress_bar(self, value_sleep):

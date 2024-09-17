@@ -119,7 +119,6 @@ class ConnectWindow(QWidget):
             self.close()
             number = ''.join(filter(str.isdigit, self.time))
             selected = self.device, self.baudrate, number
-            # text = "5 Сек"
             if selected:
                 name_port, baud, time = selected
                 try:
