@@ -14,9 +14,9 @@ class Setting_Command(QWidget):
         self.viev_model = viev_model
         self.initUI()
         self.value_sleep = 100
-        self.time = None
+        self.time = self.init_time()
         self.coefficient = None
-        self.porog = None
+        self.porog = self.init_porog()
     def initUI(self):
         self.layout = QVBoxLayout()
         self.h_time_layout = QHBoxLayout()
@@ -55,7 +55,7 @@ class Setting_Command(QWidget):
         self.h_button_control = QHBoxLayout()
 
         self.button_connect = QPushButton('Установить')
-        ## TODO Отправка команды плате и обнуление графика
+        
         self.h_button_control.addWidget(self.button_connect)
         self.button_connect.clicked.connect(self.push_fetch_setting)
 
@@ -87,13 +87,33 @@ class Setting_Command(QWidget):
         elif not (self.coefficient and self.time and self.porog):
             QMessageBox.warning(self, 'Ошибка ввода', 'Пожалуйста, введите все значения!')
 
+    def init_time(self):
+        index = self.list_time_update.currentIndex()
+        time = self.list_time_update.itemText(index)
+        formated_time = ''.join(filter(str.isdigit, time))
+        return formated_time
     def selected_time(self):
         index = self.list_time_update.currentIndex()
         if index != 0:
             time = self.list_time_update.itemText(index)
             self.time = ''.join(filter(str.isdigit, time))
         else:
-            self.time = None
+            time = self.list_time_update.itemText(index)
+            formated_time = ''.join(filter(str.isdigit, time))
+            self.time = formated_time
+    def init_porog(self):
+        index = self.list_min_porog.currentIndex()
+        porog = self.list_min_porog.itemText(index)
+        formated_porog = '.'.join(filter(str.isdigit, porog))
+        return formated_porog
+    def selected_porog(self):
+        index = self.list_min_porog.currentIndex()
+        if index != 0:
+            porog = self.list_min_porog.itemText(index)
+            self.porog = '.'.join(filter(str.isdigit, porog))
+        else:
+            porog = self.list_min_porog.itemText(index)
+            self.porog = '.'.join(filter(str.isdigit, porog))
 
     def selected_voultage(self):
         index = self.list_coefficient_voultage.currentIndex()
@@ -103,16 +123,9 @@ class Setting_Command(QWidget):
         else:
             self.coefficient = None
 
-    def selected_porog(self):
-        index = self.list_min_porog.currentIndex()
-        if index != 0:
-            porog = self.list_min_porog.itemText(index)
-            self.porog = '.'.join(filter(str.isdigit, porog))
-        else:
-            self.porog = None
             
     def populate_combobox(self, combobox, default_text, start, end, unit):
-        combobox.addItem(f'Текущий {str(default_text)}')
+        combobox.addItem(f'Текущее {str(default_text)}')
         if combobox == self.list_time_update:
             combobox.addItems([f'{i} {unit}' for i in range(5, 61, 5)])
         else:
