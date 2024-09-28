@@ -8,10 +8,9 @@ def main():
     arr_3 = np.array(numbers)
 
     arr_5 = resizes_arr(arr_3, 2, 3)
-
-    print("Двумерный массив 2x3:")
-    print(arr_5)
     
+    min_elents_axis_zero = np.min(arr_5, axis=0)
+    print(min_elents_axis_zero)
 
 if __name__ == '__main__':
     main()
