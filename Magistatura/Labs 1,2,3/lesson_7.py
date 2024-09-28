@@ -2,7 +2,6 @@ import random
 
 
 def generated_password( len_password ):
-    print(len_password)
     sequence = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+{}[]|\\:";\'<>,.?/'
     answer = ''
     while len_password > len(answer):
