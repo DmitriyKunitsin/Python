@@ -29,6 +29,10 @@ class CustomMenuBar(QMenuBar):
         # Создаем статусный виджет
         self.status_widget = QWidget()
         self.status_layout = QHBoxLayout(self.status_widget)
+        # Создаем лейбл для информации
+        self.info_label = QLabel(f"time:{self.view_model.time_update}\nporog:{self.view_model.porog}")
+        self.status_layout.addWidget(self.info_label)
+
         self.status_label = QLabel()
         self.status_label.setFixedSize(20, 20)
         self.update_status(False)
@@ -43,9 +47,12 @@ class CustomMenuBar(QMenuBar):
         if self.view_model:
             self.view_model.connect_signal.connect(self.on_status)
             self.view_model.disconnect_signal.connect(self.off_status)
+            self.view_model.new_data.connect(self.update_text_info)
 
         self.initMenu()
-    
+    def update_text_info(self):
+        new_text = f'time :{self.view_model.time_update}\n porog: {self.view_model.porog}'
+        self.info_label.setText(new_text)
     def addWidgetToMenu(self, widget):
         self.setCornerWidget(widget)
     def set_view_model(self, view_model):
@@ -81,7 +88,6 @@ class CustomMenuBar(QMenuBar):
 
         connect_menu.addAction(disconect_port_action)
 
-        
 
     def disconect(self):
         ''' Меняет булевое значение в цикле чтения порта'''

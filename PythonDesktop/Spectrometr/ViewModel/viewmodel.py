@@ -8,12 +8,14 @@ class ViewModel(QObject):
     data_changed = pyqtSignal(list)
     disconnect_signal = pyqtSignal()
     connect_signal = pyqtSignal()
+    new_data = pyqtSignal()
 
     def __init__(self):
         super().__init__()
         self.model = DataMode()
         self.model.data_update.connect(self.on_data_received)
-        self.time_update = 60000
+        self.time_update = None
+        self.porog = None
 
 
     def fetch_data(self, value_sleep=1):
@@ -21,6 +23,8 @@ class ViewModel(QObject):
 
     def setting_new_values_configurate(self, porog, time):
         self.time_update = time
+        self.porog = porog
+        self.new_data.emit()
         self.model.install_new_config(porog, time)
 
     def on_data_received(seld,data):
@@ -29,13 +33,18 @@ class ViewModel(QObject):
     def list_devices(self):
         return self.model.list_devices()
     def current_configuration(self):
-        return self.model.get_cur_config()
+        self.porog = self.model.get_cur_config()
+        self.new_data.emit()
+        return self.porog
     def current_time(self):
-        return self.time_update
+        self.time = self.time_update
+        self.new_data.emit()
+        return self.time
     
     def select_device(self, name_port, baud, time):
         self.model.select_device(name_port, baud, time)
         self.time_update = time
+        self.new_data.emit()
         self.connect_signal.emit()
 
     def disconect_port(self):
