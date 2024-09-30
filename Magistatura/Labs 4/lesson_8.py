@@ -3,7 +3,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
-    d = 1
+    df = pd.read_table('wr88125.txt', delimiter=';')
+    df.columns = ['index', 'year', 'month', 'day', 'min_t', 'average_t', 'max_t', 'fainfall']
+
+        # столбцы в числовые значения, заменяя ошибки на NaN
+    df['min_t'] = pd.to_numeric(df['min_t'], errors='coerce')
+    df['average_t'] = pd.to_numeric(df['average_t'], errors='coerce')
+    df['max_t'] = pd.to_numeric(df['max_t'], errors='coerce')
+    df['fainfall'] = pd.to_numeric(df['fainfall'], errors='coerce')
+
+    df['date'] = pd.to_datetime(df[['year','month','day']], errors='coerce')
+
+    yarly_stats = df.groupby('year').agg(
+        average_temperature=('average_t', 'mean'),
+        total_fainfall=('fainfall', 'sum')
+    ).reset_index()
+
+    average_temperature_series = yarly_stats.set_index('year')['average_temperature']
+    total_fainfall_serial = yarly_stats.set_index('year')['total_fainfall']
+
+    print('средняя температура в году : ',average_temperature_series)
+    print('Общее колличество осадков в году : ',total_fainfall_serial)
+    
+
 
 if __name__ == '__main__':
     main()
