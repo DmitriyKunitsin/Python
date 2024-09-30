@@ -24,8 +24,20 @@ def main():
 
     print('средняя температура в году : ',average_temperature_series)
     print('Общее колличество осадков в году : ',total_fainfall_serial)
+    print('Самый теплый год : ', average_temperature_series.idxmax())
+    print('Самый холодный год : ', average_temperature_series.idxmin())
+    print('Выпало самое большое колличество осадков : ', total_fainfall_serial.idxmax())
+    print('Выпало самое наименьшее колличество осадков : ', total_fainfall_serial.idxmin())
     
+    plt.figure(figsize=(12,6))
+    average_temperature_series.plot(title='Среднегодовая температура')
+    plt.ylabel('  Teмпература (*С)')
+    plt.show()
 
+    plt.figure(figsize=(12,6))
+    total_fainfall_serial.plot(title='Годовое колличество осадков')
+    plt.ylabel('Колличество осадков  (мм)')
+    plt.show()
 
 if __name__ == '__main__':
     main()
