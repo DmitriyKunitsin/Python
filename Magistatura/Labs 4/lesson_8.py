@@ -34,7 +34,7 @@ def main():
     plt.show()
 
     plt.figure(figsize=(12,6))
-    total_fainfall_serial.plot(title='Годовое колличество осадков')
+    total_fainfall_serial.plot.bar(title='Годовое колличество осадков')
     plt.ylabel('Колличество осадков  (мм)')
     plt.show()
 
