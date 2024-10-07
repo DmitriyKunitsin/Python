@@ -5,16 +5,20 @@ import scipy.stats
 import pandas as pd
 
 def main():
-    #Гармоническое среднее
+    #среднее геометрическое
     x = [6.0, 1, 2.5, 6, 25.0]
-    x_with_nan = [10.0, 2, 2.5, math.nan, 5, 26.0]
-    hmean = len(x) / sum(1 / item for item in x)
-    print(f'Расчет гармонического среднего: {hmean}')   
-    hmean_2 = statistics.harmonic_mean(x)
-    print(f'Расчет гармонического среднего с помощью statistics.harmonic_mean(): {hmean_2}')
-    print(f'Расчет гармонического среднего, где есть nan: {statistics.harmonic_mean(x_with_nan)}')
-    print(f'Расчет гармонического среднего, где есть 0:{statistics.harmonic_mean([1, 0, 2])}')
-    print(f'Расчет гармонического среднего с помощью scipy.stats.hmean(): {scipy.stats.hmean(x)}')
+
+    gmean = 1
+    for item in x:
+        gmean *= item
+    gmean **= 1 / len(x)
+    print(f'Вычисление геометрического среднего: {gmean}')
+    #gmean_2 = statistics.geometric_mean(x)
+    #print(f'Вычисление геометрического среднего с помощью statistics.geometric_mean(): {gmean_2}')
+    #gmean_3 = statistics.geometric_mean(x_with_nan)
+    #print(f'Вычисление геометрического среднего где есть nan:{gmean_3}')
+    scipy.stats.gmean(x)
+    print(f'Вычисление геометрического среднего с помощью scipy.stats.gmean(): {scipy.stats.gmean(x)}')
 
 
 if __name__ == '__main__':
