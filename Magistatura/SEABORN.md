@@ -213,6 +213,6 @@ tips = sb.load_dataset('tips')
 ax = sb.scatterplot(x = 'total_bill', y='tip', data = tips)
 plt.show()
 ```
-
+![alt text](./screens/image_4.png)
 ###  Гистограмма
 
