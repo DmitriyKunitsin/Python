@@ -39,6 +39,18 @@ def main():
     tips = sb.load_dataset('tips')
     ax = sb.scatterplot(x= 'total_bill', y='tip', data=tips)
     plt.show()
+    
+    df = sb.load_dataset('iris')
+    df.head()
+    sb.displot(df['petal_length'], kde = False)
+    plt.show()
+
+    sb.jointplot(x = 'petal_length', y= 'petal_width', data= df)
+    plt.show()
+
+    sb.set_style('ticks')
+    sb.pairplot(df, hue='species', diag_kind='kde', kind= 'scatter', palette='husl')
+    plt.show()
 
 if __name__ == '__main__':
     main()
