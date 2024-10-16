@@ -12,6 +12,26 @@
 - <span style="background-color: red;">**.agg(func)**</span> – агрегирует данные по заданной функции (например, sum, mean и т.д.) после группировки.
 - <span style="background-color: red;">**.truncate(before, after)**</span> – позволяет обрезать DataFrame по индексам или датам. Полезно для работы с временными рядами.
 
+- <span style="background-color: red;">**.shape**</span> – Метод shape возвращает размеры DataFrame или Series в виде кортежа 
+  
+  - Возвращаемое значение: 
+
+  1) Кортеж (количество_строк, количество_столбцов) для DataFrame.
+
+  2) Для Series возвращается кортеж с количеством элементов: (количество_элементов).
+  ```
+    import pandas as pd
+
+  # Создание DataFrame
+  data = {'A': [1, 2, 3], 'B': [4, 5, 6]}
+  df = pd.DataFrame(data)
+
+  # Получение размеров DataFrame
+  dimensions = df.shape
+  print(dimensions)  # Вывод: (3, 2)
+  ```
+
+
 - <span style="background-color: red;">**df = pd.DataFrame()**</span> - Это может пригодиться тогда, когда нужно вручную ввести в программу простые данные. Например — если нужно оценить изменения, претерпеваемые данными, проходящими через конвейер обработки данных.
 ``` 
 df = pd.DataFrame([[1,'Bob', 'Builder'],
