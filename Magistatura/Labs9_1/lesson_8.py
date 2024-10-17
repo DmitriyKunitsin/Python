@@ -116,17 +116,14 @@ def main():
         'Предсказанные цены' : y_pred_result
     })
     plt.figure(figsize=(10,10))
-    sb.scatterplot(x='Оригинальные цены', y='Предсказанные цены', data=data)
-    plt.plot([data['Оригинальные цены'].min(), data['Оригинальные цены'].max()],
-         [data['Оригинальные цены'].min(), data['Оригинальные цены'].max()],
-         color='red', linestyle='--')
-   
+    
+    plt.scatter(data.index, data['Оригинальные цены'], color='red', label='Оригинальные цены')
+    plt.scatter(data.index, data['Предсказанные цены'], color='blue', label='Предсказанные цены')
     plt.title('Сравнение оригинальных и предсказанных цен')
-    plt.xlabel('Оригинальные цены')
-    plt.ylabel('Предсказанные цены')
-    plt.xlim(data['Оригинальные цены'].min(), data['Оригинальные цены'].max())
-    plt.ylim(data['Предсказанные цены'].min(), data['Предсказанные цены'].max())
+    plt.xlabel('Индекс')
+    plt.ylabel('Цены')
     plt.grid()
+    plt.legend()
     plt.show()
 
 
