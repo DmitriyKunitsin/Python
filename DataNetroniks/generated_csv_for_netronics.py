@@ -38,7 +38,7 @@ def generated_date(base_data, coef_alumin=0):
     base_trnp = 100
     data = []
     start_date = pd.Timestamp('2024-10-17')
-    for i in range(5000):
+    for i in range(1000):
         trnp_value = base_trnp - (abs(coef_alumin) * 1.5)
         
         NTNC_value, FTNC_value, NTNL_value, FTNL_value = calculate_values(base_data, coef_alumin, trnp_value)
@@ -61,7 +61,7 @@ def generated_date(base_data, coef_alumin=0):
 
 def main():
     base_data = [33913720, 1620.0, 120.0, 0.0415, 3.3395, 93.1]
-    aluminium_concentrations = [5,10,15,20,25,30,35,40,45,50,55,60,65]
+    aluminium_concentrations = [5,10,15,20,25,30,35,40,45,50,55]#,60,65]
     dfs = []
 
     data_water_full = generated_date(base_data)

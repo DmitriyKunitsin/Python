@@ -13,7 +13,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_square
 
 
 def main():
-# Загрузка данных
+    # Загрузка данных
     folder_path = 'data_tables'
     data_frames = []
 
@@ -21,7 +21,7 @@ def main():
         if file.endswith('.csv'):
             df = pd.read_csv(os.path.join(folder_path, file))
             data_frames.append(df)
-# Объединение всех данных в один
+    # Объединение всех данных в один
     full_data = pd.concat(data_frames, ignore_index=True) 
 
     if full_data.isnull().sum().sum() != 0:
@@ -60,9 +60,9 @@ def main():
     FTNL_min = X_train['FTNL'].min()
     FTNL_max = X_train['FTNL'].max()
     pred_alumin = predict_aluminium_concentration(desired_trnp, model, NTNC_min, NTNC_max, FTNC_min, FTNC_max, NTNL_min, NTNL_max, FTNL_min, FTNL_max)
-    print(f"Необходимое содержание алюминия для достижения TRNP {desired_trnp}: {pred_alumin}")
+    print(f"Необходимое содержание алюминия {pred_alumin:.2f} мм для достижения TRNP {desired_trnp} ")
 def predict_aluminium_concentration(desired_trnp, model, NTNC_min, NTNC_max, FTNC_min, FTNC_max, NTNL_min, NTNL_max, FTNL_min , FTNL_max):
-    aluminum_content_range = np.linspace(0, 150, num=100) # Примерный диапазон содержания алюминия
+    aluminum_content_range = np.linspace(0, 250, num=100) # Примерный диапазон содержания алюминия
     results = []
     
     for aluminum_content in aluminum_content_range:
