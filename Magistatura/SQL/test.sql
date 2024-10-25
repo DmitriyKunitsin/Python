@@ -1,3 +1,5 @@
+localhost:1521/XEPDB1
+
 -- Создание схемы
 CREATE USER my_schema IDENTIFIED BY my_password;
 GRANT CONNECT, RESOURCE TO my_schema;
