@@ -25,12 +25,12 @@ def garage_size_label(cars):
 def main():
     pd.set_option('display.max_columns', 100)
     df = pd.read_csv('house_train.csv')
-    # df.drop('Id', axis=1, inplace=True)
-    # print(df.head())
-    # print(df.columns)
-    # print(df.shape)
-    # print(df.describe().T)
-    # df.describe()
+    df.drop('Id', axis=1, inplace=True)
+    print(df.head())
+    print(df.columns)
+    print(df.shape)
+    print(df.describe().T)
+    df.describe()
     print(df['SalePrice'].describe())
     na_number = df.isna().sum()
     print("Колличество пустых значения в наборе данных :\n",na_number)
@@ -83,7 +83,6 @@ def main():
     # plt.title('Box plot of SalePrice')
     # plt.xlabel('SalePrice')
     # plt.show()
-    
     # Построение Boxplot
     # plt.figure(figsize=(10, 5))
     # sb.boxplot(x='CentralAir', y='SalePrice', data=df)
