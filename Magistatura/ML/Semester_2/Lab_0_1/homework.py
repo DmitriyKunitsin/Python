@@ -55,13 +55,31 @@ def main():
 
     from sklearn.model_selection import GridSearchCV
 
+    # Гиперпараметры SVM
     svm_param_grid = {
         'C': [0.1,1,10],
         'kernel':['linear','rbf']
     }
-    svm_grid = GridSearchCV(estimators[1], svm_param_grid, cv=5)
+    svm_grid = GridSearchCV(SVC(probability=True), svm_param_grid, cv=5)
     svm_grid.fit(X_train_scaled, y_train)
 
+    # Гиперпараметры KNN
+    knn_param_grid = {'n_neighbors':[3,5,7]}
+    knn_grid = GridSearchCV(KNeighborsClassifier(), knn_param_grid,cv=5)
+    knn_grid.fit(X_train_scaled, y_train)
+
+    # Гиператпараметры дерева
+    dt_param_grid = {'max_depth':[None,5,10]}
+    dt_grid = GridSearchCV(DecisionTreeClassifier(), dt_param_grid, cv=5)
+    dt_grid.fit(X_train_scaled, y_train)
+
+    estimators_best = [('SVM', svm_grid.best_estimator_),
+                       ('knn', knn_grid.best_estimator_),
+                       ('dt', dt_grid.best_estimator_)]
+
+    staking_model_2 = StackingClassifier(estimators=estimators_best, final_estimator=LogisticRegression())
+    staking_model_2.fit(X_train_scaled, y_train)
+    y_pred_2 = staking_model_2.predict(X_test_scaled)
 
 if __name__ == "__main__":
     main()
