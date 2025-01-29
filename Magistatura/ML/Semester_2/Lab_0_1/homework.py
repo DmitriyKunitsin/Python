@@ -13,10 +13,55 @@
 # Если есть возможность выполнить подбор гиперпараметров модели - сделайте! 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+# from sklearn.preprocessing import StandardScaler, MinMaxScaler
+
+    
 
 def main():
-    data = pd.read_csv()
+    data = pd.read_csv('diabetes.csv')
+    X = data.drop('Outcome', axis=1)
+    y = data['Outcome']
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    from sklearn.preprocessing import MinMaxScaler
+    # (1) Выполните масштабирование данных. 
+    scaler = MinMaxScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.fit(X_test)
+
+
+    # (2) Конфигурация 1
+    # В качестве слабых учеников возьмите SVM, KNN, 
+    # метод решающих деревьев с параметрами по умолчанию, в качестве метамодели - логистическую регрессию. 
+
+    from sklearn.svm import SVC # Классификация
+    from sklearn.neighbors import KNeighborsClassifier # Ближайшие соседи
+    from sklearn.tree import DecisionTreeClassifier # Деревья решений
+    from sklearn.linear_model import LogisticRegression #  Логистическая регрессия
+    from sklearn.ensemble import StackingClassifier
+
+    estimators = [("SVM", SVC(probability=True)),
+                  ("KNN", KNeighborsClassifier()),
+                  ("dt", DecisionTreeClassifier())]
+    staking_model_1 = StackingClassifier(estimators=estimators, final_estimator=LogisticRegression())
+    # Обучение модели
+    staking_model_1.fit(X_train_scaled, y_train)
+    # Оценка модели
+    y_pred_1 = staking_model_1.predict(X_test_scaled)
+
+    # (3) 2-ю конфигурацию возьмите с таким же набором слабых учеников, 
+    # но для каждого задайте наилучшие гиперпараметры на основе выполненных ранее заданий. 
+
+    from sklearn.model_selection import GridSearchCV
+
+    svm_param_grid = {
+        'C': [0.1,1,10],
+        'kernel':['linear','rbf']
+    }
+    svm_grid = GridSearchCV(estimators[1], svm_param_grid, cv=5)
+    svm_grid.fit(X_train_scaled, y_train)
+
 
 if __name__ == "__main__":
     main()
