@@ -28,7 +28,7 @@ def main():
     # (1) Выполните масштабирование данных. 
     scaler = MinMaxScaler()
     X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.fit(X_test)
+    X_test_scaled = scaler.transform(X_test)
 
 
     # (2) Конфигурация 1
@@ -80,6 +80,41 @@ def main():
     staking_model_2 = StackingClassifier(estimators=estimators_best, final_estimator=LogisticRegression())
     staking_model_2.fit(X_train_scaled, y_train)
     y_pred_2 = staking_model_2.predict(X_test_scaled)
+
+    # (4) 3-ю конфигурацию - возьмите по два слабых ученика по каждой модели (одна с гиперпараметрами по умолчанию, вторая - с наилучшими). 
+    estimators_combo = [
+        ('SVM_def', SVC(probability=True)),
+        ('SVm_best', svm_grid.best_estimator_),
+        ('KNN_def', KNeighborsClassifier()),
+        ('KNN_best', knn_grid.best_estimator_),
+        ('dt_def', DecisionTreeClassifier()),
+        ('dt_best', dt_grid.best_estimator_)
+    ]
+
+    staking_model_3 = StackingClassifier(estimators=estimators_combo, final_estimator=LogisticRegression())
+    staking_model_3.fit(X_train_scaled, y_train)
+    y_pred_3 = staking_model_3.predict(X_test_scaled)
+
+    # (5) Для каждого ансамбля моделей выведите его конфигурацию. 
+    print('Конфигурация №1:')
+    print(staking_model_1)
+
+    print('Конфигурация №2:')
+    print(staking_model_2)
+
+    print('Конфигурация №3:')
+    print(staking_model_3)
+
+    # (6) Проведите сравнение (classification_report) с ранее выполненными работами.
+    from sklearn.metrics import classification_report
+    print("\nClassification Report для конфигурации 1:")
+    print(classification_report(y_test, y_pred_1))
+
+    print("\nClassification Report для конфигурации 2:")
+    print(classification_report(y_test, y_pred_2))
+
+    print("\nClassification Report для конфигурации 3:")
+    print(classification_report(y_test, y_pred_3))
 
 if __name__ == "__main__":
     main()
