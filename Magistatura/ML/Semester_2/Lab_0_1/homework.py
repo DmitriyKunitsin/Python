@@ -13,7 +13,6 @@
 # Если есть возможность выполнить подбор гиперпараметров модели - сделайте! 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-# from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
     
 
