@@ -48,12 +48,9 @@ def main():
     staking_model_1.fit(X_train_scaled, y_train)
     # Оценка модели
     y_pred_1 = staking_model_1.predict(X_test_scaled)
-
     # (3) 2-ю конфигурацию возьмите с таким же набором слабых учеников, 
     # но для каждого задайте наилучшие гиперпараметры на основе выполненных ранее заданий. 
-
     from sklearn.model_selection import GridSearchCV
-
     # Гиперпараметры SVM
     svm_param_grid = {
         'C': [0.1,1,10],
@@ -61,21 +58,17 @@ def main():
     }
     svm_grid = GridSearchCV(SVC(probability=True), svm_param_grid, cv=5)
     svm_grid.fit(X_train_scaled, y_train)
-
     # Гиперпараметры KNN
     knn_param_grid = {'n_neighbors':[3,5,7]}
     knn_grid = GridSearchCV(KNeighborsClassifier(), knn_param_grid,cv=5)
     knn_grid.fit(X_train_scaled, y_train)
-
     # Гиператпараметры дерева
     dt_param_grid = {'max_depth':[None,5,10]}
     dt_grid = GridSearchCV(DecisionTreeClassifier(), dt_param_grid, cv=5)
     dt_grid.fit(X_train_scaled, y_train)
-
     estimators_best = [('SVM', svm_grid.best_estimator_),
                        ('knn', knn_grid.best_estimator_),
                        ('dt', dt_grid.best_estimator_)]
-
     staking_model_2 = StackingClassifier(estimators=estimators_best, final_estimator=LogisticRegression())
     staking_model_2.fit(X_train_scaled, y_train)
     y_pred_2 = staking_model_2.predict(X_test_scaled)
@@ -89,7 +82,6 @@ def main():
         ('dt_def', DecisionTreeClassifier()),
         ('dt_best', dt_grid.best_estimator_)
     ]
-
     staking_model_3 = StackingClassifier(estimators=estimators_combo, final_estimator=LogisticRegression())
     staking_model_3.fit(X_train_scaled, y_train)
     y_pred_3 = staking_model_3.predict(X_test_scaled)
@@ -97,10 +89,8 @@ def main():
     # (5) Для каждого ансамбля моделей выведите его конфигурацию. 
     print('Конфигурация №1:')
     print(staking_model_1)
-
     print('Конфигурация №2:')
     print(staking_model_2)
-
     print('Конфигурация №3:')
     print(staking_model_3)
 
@@ -108,10 +98,8 @@ def main():
     from sklearn.metrics import classification_report
     print("\nClassification Report для конфигурации 1:")
     print(classification_report(y_test, y_pred_1))
-
     print("\nClassification Report для конфигурации 2:")
     print(classification_report(y_test, y_pred_2))
-
     print("\nClassification Report для конфигурации 3:")
     print(classification_report(y_test, y_pred_3))
 

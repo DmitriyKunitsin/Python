@@ -89,6 +89,21 @@ def main():
     # (8) Используя метод главных компонент (PCA), осуществите понижение размерности данных. 
     # Визуализируйте данные в проекции на первые две главные компоненты. 
 
+    from sklearn.decomposition import PCA
+
+    pca = PCA(n_components=2)
+    x_pca = pca.fit_transform(x_train)
+
+    # Визуализация данных в проекции на первые две главные компоненты.
+    plt.figure(figsize=(8, 6))
+    plt.scatter(x_pca[:, 0], x_pca[:, 1], c=y_train, cmap='viridis', edgecolor='none', alpha=0.5, s=20)
+    plt.title('PCA: Проекция на первые две главные компоненты')
+    plt.xlabel('Первая главная компонента')
+    plt.ylabel('Вторая главная компонента')
+    plt.colorbar()
+    plt.show()
+
+    # (9) Выполните понижение размерности методом t-SNE, отобразите результат. 
     
 
 
