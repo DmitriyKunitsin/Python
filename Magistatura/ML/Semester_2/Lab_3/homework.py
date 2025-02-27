@@ -46,11 +46,9 @@ def main():
     data['cluster'] = kmeans.fit_predict(X)
 
 
-    # Описание характеристик каждого кластера
     cluster_summary = data.groupby('cluster').mean()
     print(cluster_summary)
 
-    # Также можно посмотреть распределение по количеству сотрудников в каждом кластере
     cluster_counts = data['cluster'].value_counts()
     print(cluster_counts)
 
