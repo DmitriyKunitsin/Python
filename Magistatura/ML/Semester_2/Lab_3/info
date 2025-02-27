@@ -1,0 +1,11 @@
+### Codebook
+1. `satisfaction_level` - Employee satisfaction level
+1. `Last_evaluation` - Last evaluation score
+1. `number_projects` - Number of projects assigned to
+1. `average_monthly_hours` - Average monthly hours worked
+1. `time_spend_company` - Time spent at the company
+1. `work_accident` - Whether they have had a work accident
+1. `left` - Whether or not employee left company
+1. `promotion_last_5years` - Whether they have had a promotion in the last 5 years
+1. `department` - Department name
+1. `salary` - Salary category
