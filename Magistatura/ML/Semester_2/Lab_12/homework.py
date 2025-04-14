@@ -11,9 +11,80 @@
 import numpy as np 
 import os
 import matplotlib.pyplot as plt
+import cv2
 
 def main():
-    print('Hello!')
+
+
+    photos = list(filter(lambda x : '.png' in x, os.listdir()))
+    print(f'Список всех фоток : {photos}') 
+
+
+    for photo in photos:
+        face_det_cv2(photo)
+
+
+"""
+    https://habr.com/ru/articles/519454/
+    Доп инфу черпал от сюда
+"""
+
+"""
+Функция detectMultiScale принимает 4 параметра:
+
+    1) Обрабатываемое изображение в градации серого.
+    2) Параметр scaleFactor. Некоторые лица могут быть больше других, поскольку находятся ближе, 
+        чем остальные. Этот параметр компенсирует перспективу.
+    3) Алгоритм распознавания использует скользящее окно во время распознавания объектов. 
+        Параметр minNeighbors определяет количество объектов вокруг лица. 
+        То есть чем больше значение этого параметра, тем больше аналогичных объектов необходимо алгоритму, 
+        чтобы он определил текущий объект, как лицо. Слишком маленькое значение увеличит количество ложных срабатываний, 
+        а слишком большое сделает алгоритм более требовательным.
+    4) minSize — непосредственно размер этих областей.
+
+"""
+def face_det_cv2(photo_name):
+    """
+        Чтобы считать изображение в RGB — cv2.IMREAD_COLOR, в оттенках серого — cv2.IMREAD_GRAYSCALE.
+    """
+    img_color = cv2.imread(photo_name)
+    img_gray = cv2.cvtColor(img_color, cv2.COLOR_BGR2GRAY)
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+
+    faces = face_cascade.detectMultiScale(
+        img_gray,
+        scaleFactor = 1.05, # Данный параметр компенсирует перспективу ( ближе дальше лица относительно друг друга ) 
+        minNeighbors= 12, # Уменьшение этого значения может помочь обнаружить больше лиц, но также увеличивает количество ложных срабатываний
+        minSize=(35,35) # Этот параметр определяет минимальный размер лиц, которые будут обнаружены. 
+    )
+
+    check_len_face = len(faces)
+
+    for(x,y,w,h) in faces:
+        cv2.rectangle(img_color, (x,y), (x+w, y+h), (255,255,0), 2)
+
+    face_profile_cascade = cv2.CascadeClassifier('haarcascade_profileface.xml')
+
+    faces = face_profile_cascade.detectMultiScale(
+        img_gray,
+        scaleFactor = 1.05, # Данный параметр компенсирует перспективу ( ближе дальше лица относительно друг друга ) 
+        minNeighbors= 12, # Уменьшение этого значения может помочь обнаружить больше лиц, но также увеличивает количество ложных срабатываний
+        minSize=(65,65) # Этот параметр определяет минимальный размер лиц, которые будут обнаружены. 
+    )
+
+    # Отрисовка прямугольков вокруг лиц
+    for(x,y,w,h) in faces:
+        cv2.rectangle(img_color, (x,y), (x+w, y+h), (255,255,0), 2)
+    
+    faces_detected = "Лиц обнаружено :" + format(len(faces) + check_len_face)
+    print(faces_detected)
+    
+    plt.figure(figsize=(8,8), dpi=90)
+    plt.imshow(cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB))
+    plt.show()
+    cv2.waitKey(0)
+
 
 if __name__ == "__main__":
     main()
