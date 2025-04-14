@@ -27,6 +27,9 @@ def main():
     # for photo in photos:
     #     face_det_fr(photo)
     
+    "Детекция лиц в MTCNN"
+    for photo in photos:
+        face_det_mtcnn(photo)
 
 """
     https://habr.com/ru/articles/519454/
@@ -107,5 +110,32 @@ def face_det_fr(photo_name):
     plt.show()
     cv2.waitKey(0)
     
+
+"Детекция лиц на основе MTCNN"
+def face_det_mtcnn(photo_name):
+    from mtcnn import MTCNN
+    import cv2
+
+    img = cv2.imread(photo_name) 
+    detector = MTCNN()
+
+    face_list = detector.detect_faces(img)
+
+    for face in face_list:
+        box = face["box"]
+        keypoints = face["keypoints"]
+
+        x,y,w,h = box
+        cv2.rectangle(img, (x,y), (x+w, y+h), (255,0,255), 2)
+        
+        cv2.circle(img,keypoints["left_eye"],1,(0,0,255),5)
+        cv2.circle(img,keypoints["right_eye"],1,(0,0,255),5)
+        cv2.circle(img,keypoints["nose"],1,(0,0,255),5)
+        cv2.circle(img,keypoints["mouth_left"],1,(0,0,255),5)
+        cv2.circle(img,keypoints["mouth_right"],1,(0,0,255),5)
+    
+    plt.figure(figsize=(8,8), dpi=90)
+    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.show()
 if __name__ == "__main__":
     main()
