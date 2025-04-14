@@ -11,7 +11,7 @@
 import numpy as np 
 import os
 import matplotlib.pyplot as plt
-import cv2
+
 
 def main():
 
@@ -19,10 +19,14 @@ def main():
     photos = list(filter(lambda x : '.png' in x, os.listdir()))
     print(f'Список всех фоток : {photos}') 
 
+    "Детекция лиц в Open CV"
+    # for photo in photos:
+    #     face_det_cv2(photo)
 
-    for photo in photos:
-        face_det_cv2(photo)
-
+    "Детекция лиц в Face recording"
+    # for photo in photos:
+    #     face_det_fr(photo)
+    
 
 """
     https://habr.com/ru/articles/519454/
@@ -44,6 +48,7 @@ def main():
 
 """
 def face_det_cv2(photo_name):
+    import cv2
     """
         Чтобы считать изображение в RGB — cv2.IMREAD_COLOR, в оттенках серого — cv2.IMREAD_GRAYSCALE.
     """
@@ -85,6 +90,22 @@ def face_det_cv2(photo_name):
     plt.show()
     cv2.waitKey(0)
 
+"Детекция лиц на основе Face Recording"
+def face_det_fr(photo_name):
+    # Библиотека
+    import face_recognition
+    import cv2
 
+    image_processed = face_recognition.load_image_file(photo_name)
+    face_location = face_recognition.face_locations(image_processed)
+    img = cv2.imread(photo_name)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    for(top, right, bottom, left) in (face_location):
+        cv2.rectangle(img, (left, top), (right, bottom), (120,0,120), 2)
+    plt.figure(figsize=(8,8), dpi=90)
+    plt.imshow(img)
+    plt.show()
+    cv2.waitKey(0)
+    
 if __name__ == "__main__":
     main()
