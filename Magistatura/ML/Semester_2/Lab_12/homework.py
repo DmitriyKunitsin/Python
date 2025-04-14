@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 def main():
 
 
-    photos = list(filter(lambda x : '.png' in x, os.listdir()))
-    print(f'Список всех фоток : {photos}') 
+    # photos = list(filter(lambda x : '.png' in x, os.listdir()))
+    # print(f'Список всех фоток : {photos}') 
 
     "Детекция лиц в Open CV"
     # for photo in photos:
@@ -28,8 +28,14 @@ def main():
     #     face_det_fr(photo)
     
     "Детекция лиц в MTCNN"
-    for photo in photos:
-        face_det_mtcnn(photo)
+    # for photo in photos:
+    #     face_det_mtcnn(photo)
+
+    
+    "Применение Face Recording для детекции лиц в видео"
+    face_det_video()
+
+
 
 """
     https://habr.com/ru/articles/519454/
@@ -137,5 +143,118 @@ def face_det_mtcnn(photo_name):
     plt.figure(figsize=(8,8), dpi=90)
     plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     plt.show()
+
+"Применение Face Recording для детекции лиц в видео"
+def face_det_video():
+    from base64 import b64encode
+    import face_recognition
+    import cv2
+
+    mp4 = open('test_video_2.mp4', 'rb').read()
+    data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
+
+    input_video = "test_video.mp4" # Загруженное видео
+
+    output_video = 'output.avi' # Результирующее видео
+
+    output_video_res = (640,480) # Разрешение выходного видео
+
+    "Фото-образец для распознования на видео"
+    # photo_pattern = ["face_one.png","face_second.png","face_three.png"]
+    photo_pattern = ["search_face_one.png","search_face_two.png","search_face_three.png"]
+    known_face_encoding = []
+    for pattern in photo_pattern:
+        image = face_recognition.load_image_file(pattern)
+        face_encoding = face_recognition.face_encodings(image)
+
+        if face_encoding:
+            known_face_encoding.append(face_encoding[0])
+        else:
+            print(f"Лицо не найдено на изображении: {pattern}")
+            known_face_encoding.append(None)
+
+    "Подписи лиц на видео"
+    sign_photo_name = "Nigga"
+    second_photo_name = "China"
+    three_photo_name = "Glasses"
+
+    input_movie = cv2.VideoCapture(input_video)
+    lenght = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    output_movie = cv2.VideoWriter(output_video, fourcc, 25, output_video_res)
+
+    known_face_names = [
+        sign_photo_name,
+        second_photo_name,
+        three_photo_name
+    ]
+
+    face_locations = []
+    face_encodings = []
+    face_names = []
+    frame_number = 0
+
+    while True:
+        # беру отельный кадр видео
+        ret, frame = input_movie.read()
+        frame_number += 1
+        # Если кадрый кончились
+        if not ret:
+            print("Не удалось прочитать кадр. Завершение.")
+            break
+        if frame is None or frame.size == 0:
+            print("Кадр пустой или невалидный.")
+            continue
+        # преобраываб кадлый кадр из BGR -> RGB 
+        # уменьшаю до 1\4 для более быстрого процесса
+        small_frame = cv2.resize(frame, (0,0), fx=0.25, fy=0.25)
+
+        rgb_small_frame = small_frame[:, :, ::-1]
+        
+        try:
+        # Нахожу лица в кадре
+            # print("Oбрабоктка кадра...{}".format(frame_number))
+            face_locations = face_recognition.face_locations(rgb_small_frame)
+            if len(face_locations) == 0:
+                # print("Лица не найдены на кадре.")
+                continue 
+            else:
+                print(f"Найденные лица : {face_locations}")
+                face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+        except Exception as ex:
+            print(f"Ошибка при обработке кадра: {ex}")
+            output_movie.write(frame)
+            continue
+        face_names = []
+
+        for face_encod in face_encodings:
+
+            
+            # Проверка если ли целевое лицо среди найденных
+            match = face_recognition.compare_faces(known_face_encoding, face_encod, tolerance=0.50)
+
+            name = "Unknown"
+
+            face_distances = face_recognition.face_distance(known_face_encoding, face_encod)
+            best_match_index = np.argmin(face_distances)
+            if match[best_match_index]:# Если найдено целевое лицо, то присваиваем нужное имя
+                name = known_face_names[best_match_index]
+            face_names.append(name)
+
+        # Подписываем результат
+        for (top, right, bottom, left), name in zip(face_locations, face_names):
+            
+            if not name:
+                continue
+            # Обвожу рамкой лицо
+            cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2) 
+
+            # Рисую квадрат с подписью имени
+            cv2.rectangle(frame, (left, bottom - 25), (right, bottom), (0, 255, 0), cv2.FILLED)
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (255, 255, 255), 1)
+
+        print("Writing frame {} / {}".format(frame_number, lenght))
+        output_movie.write(frame)
 if __name__ == "__main__":
     main()
