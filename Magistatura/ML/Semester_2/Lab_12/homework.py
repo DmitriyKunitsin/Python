@@ -150,18 +150,18 @@ def face_det_video():
     import face_recognition
     import cv2
 
-    mp4 = open('test_video_2.mp4', 'rb').read()
-    data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
+    # mp4 = open('test_video_2.mp4', 'rb').read()
+    # data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
 
-    input_video = "test_video.mp4" # Загруженное видео
+    input_video = "test_video_2.mp4" # Загруженное видео
 
     output_video = 'output.avi' # Результирующее видео
 
-    output_video_res = (640,480) # Разрешение выходного видео
+    output_video_res = (1920,1080) # Разрешение выходного видео
 
     "Фото-образец для распознования на видео"
-    # photo_pattern = ["face_one.png","face_second.png","face_three.png"]
-    photo_pattern = ["search_face_one.png","search_face_two.png","search_face_three.png"]
+    photo_pattern = ["face_one.png","face_second.png","face_three.png"]
+    # photo_pattern = ["search_face_one.png","search_face_two.png","search_face_three.png"]
     known_face_encoding = []
     for pattern in photo_pattern:
         image = face_recognition.load_image_file(pattern)
@@ -176,12 +176,15 @@ def face_det_video():
     "Подписи лиц на видео"
     sign_photo_name = "Nigga"
     second_photo_name = "China"
-    three_photo_name = "Glasses"
+    three_photo_name = "Man"
 
     input_movie = cv2.VideoCapture(input_video)
     lenght = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    output_movie = cv2.VideoWriter(output_video, fourcc, 25, output_video_res)
+    """
+    https://fourcc.org/codecs.php - полный список декодеков
+    """
+    output_movie = cv2.VideoWriter(output_video, fourcc, 25.0, output_video_res)
 
     known_face_names = [
         sign_photo_name,
@@ -207,29 +210,28 @@ def face_det_video():
             continue
         # преобраываб кадлый кадр из BGR -> RGB 
         # уменьшаю до 1\4 для более быстрого процесса
-        small_frame = cv2.resize(frame, (0,0), fx=0.25, fy=0.25)
+        small_frame = cv2.resize(frame, (0,0), fx=1, fy=1)
 
-        rgb_small_frame = small_frame[:, :, ::-1]
+        rgb_small_frame = np.ascontiguousarray(small_frame[:, :, ::-1])
         
         try:
         # Нахожу лица в кадре
             # print("Oбрабоктка кадра...{}".format(frame_number))
             face_locations = face_recognition.face_locations(rgb_small_frame)
             if len(face_locations) == 0:
-                # print("Лица не найдены на кадре.")
+                print("Лица не найдены на кадре №{}.".format(frame_number))
                 continue 
             else:
-                print(f"Найденные лица : {face_locations}")
+                # print(f"Найденные лица : {face_locations}")
                 face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
         except Exception as ex:
             print(f"Ошибка при обработке кадра: {ex}")
-            output_movie.write(frame)
+            # output_movie.write(frame)
             continue
         face_names = []
 
         for face_encod in face_encodings:
 
-            
             # Проверка если ли целевое лицо среди найденных
             match = face_recognition.compare_faces(known_face_encoding, face_encod, tolerance=0.50)
 
@@ -245,6 +247,7 @@ def face_det_video():
         for (top, right, bottom, left), name in zip(face_locations, face_names):
             
             if not name:
+                print("Имени не найдено в кадре {}".format(frame_number))
                 continue
             # Обвожу рамкой лицо
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2) 
@@ -256,5 +259,13 @@ def face_det_video():
 
         print("Writing frame {} / {}".format(frame_number, lenght))
         output_movie.write(frame)
+    """
+        *функция out.release() используется для освобождения ресурсов, связанных с объектом VideoWriter
+        
+        *cv2.destroyAllWindows() в библиотеке OpenCV используется для закрытия всех окон, 
+            созданных с помощью функций OpenCV, таких как cv2.imshow()
+    """
+    output_movie.release()
+    cv2.destroyAllWindows()
 if __name__ == "__main__":
     main()
