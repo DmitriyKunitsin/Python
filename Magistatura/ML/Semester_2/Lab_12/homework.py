@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 def main():
 
 
-    # photos = list(filter(lambda x : '.png' in x, os.listdir()))
-    # print(f'Список всех фоток : {photos}') 
+    photos = list(filter(lambda x : '.png' in x, os.listdir()))
+    print(f'Список всех фоток : {photos}') 
 
     "Детекция лиц в Open CV"
     # for photo in photos:
@@ -33,12 +33,13 @@ def main():
 
     
     "Применение Face Recording для детекции лиц в видео"
-    face_det_video()
+    # face_det_video()
 
 
 
 """
     https://habr.com/ru/articles/519454/
+    https://github.com/ageitgey/face_recognition/blob/master/examples/facerec_from_webcam_faster.py    
     Доп инфу черпал от сюда
 """
 
@@ -94,10 +95,11 @@ def face_det_cv2(photo_name):
     faces_detected = "Лиц обнаружено :" + format(len(faces) + check_len_face)
     print(faces_detected)
     
-    plt.figure(figsize=(8,8), dpi=90)
-    plt.imshow(cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB))
-    plt.show()
-    cv2.waitKey(0)
+    # plt.figure(figsize=(8,8), dpi=90)
+    # plt.imshow(cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB))
+    # plt.show()
+    cv2.imwrite('Task_one/res_{}.png'.format(photo_name), img_color)
+    # cv2.waitKey(0)
 
 "Детекция лиц на основе Face Recording"
 def face_det_fr(photo_name):
@@ -111,10 +113,11 @@ def face_det_fr(photo_name):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     for(top, right, bottom, left) in (face_location):
         cv2.rectangle(img, (left, top), (right, bottom), (120,0,120), 2)
-    plt.figure(figsize=(8,8), dpi=90)
-    plt.imshow(img)
-    plt.show()
-    cv2.waitKey(0)
+    # plt.figure(figsize=(8,8), dpi=90)
+    # plt.imshow(img)
+    # plt.show()
+    # cv2.waitKey(0)
+    cv2.imwrite('Task_two/res_{}'.format(photo_name), cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     
 
 "Детекция лиц на основе MTCNN"
@@ -140,9 +143,11 @@ def face_det_mtcnn(photo_name):
         cv2.circle(img,keypoints["mouth_left"],1,(0,0,255),5)
         cv2.circle(img,keypoints["mouth_right"],1,(0,0,255),5)
     
-    plt.figure(figsize=(8,8), dpi=90)
-    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    plt.show()
+    # plt.figure(figsize=(8,8), dpi=90)
+    # plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    # plt.show()
+    # cv2.waitKey(0)
+    cv2.imwrite('Task_three/res_{}'.format(photo_name), img)
 
 "Применение Face Recording для детекции лиц в видео"
 def face_det_video():
@@ -153,15 +158,15 @@ def face_det_video():
     # mp4 = open('test_video_2.mp4', 'rb').read()
     # data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
 
-    input_video = "test_video_2.mp4" # Загруженное видео
+    input_video = "test_video.mp4" # Загруженное видео
 
     output_video = 'output.avi' # Результирующее видео
 
     output_video_res = (1920,1080) # Разрешение выходного видео
 
     "Фото-образец для распознования на видео"
-    photo_pattern = ["face_one.png","face_second.png","face_three.png"]
-    # photo_pattern = ["search_face_one.png","search_face_two.png","search_face_three.png"]
+    # photo_pattern = ["face_one.png","face_second.png","face_three.png"]
+    photo_pattern = ["search_face_one.png","search_face_two.png","search_face_three.png"]
     known_face_encoding = []
     for pattern in photo_pattern:
         image = face_recognition.load_image_file(pattern)
@@ -255,7 +260,7 @@ def face_det_video():
             # Рисую квадрат с подписью имени
             cv2.rectangle(frame, (left, bottom - 25), (right, bottom), (0, 255, 0), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
-            cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (255, 255, 255), 1)
+            cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (0, 0, 0), 1)
 
         print("Writing frame {} / {}".format(frame_number, lenght))
         output_movie.write(frame)
