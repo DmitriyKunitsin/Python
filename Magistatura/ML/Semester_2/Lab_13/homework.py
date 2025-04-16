@@ -22,8 +22,58 @@
         8. Набор данных COCO - возможно понадобится для скачивания меток классов : https://cocodataset.org/#home
 '''
 
+"""
+    *model = YOLO("yolov8n.pt")*
+
+    При первом запуске кода, он загрузит файл yolov8n.pt
+        с сервера Ultralytics  в текущую папку
+    Существует три типа модели и 5 моделей разного размера для каждого типа
+    Виды моделей : Классификация (yolov8n-cls.pt), Обнаружение  (yolov8n.pt), Сегментация (yolov8n-seg.pt)
+    Виды размеров : Nano, Small, Medium, Large, Huge
+        Чем больше модель, тем лучше качество предсканаия можно добится, но тем медленей будет работать
+"""
+"""
+    import os 
+import numpy as np
+os.getcwd()
+
+
+# if not os.path.exists('yaml'):
+# os.mkdir('yaml')
+os.makedirs('yaml/train/images', exist_ok=True)
+os.makedirs('yaml/train/labels', exist_ok=True)
+os.makedirs('yaml/val/images', exist_ok=True)
+os.makedirs('yaml/val/labels', exist_ok=True)
+
+import face_recognition
+import cv2
+
+input_movie = cv2.VideoCapture('/content/test_video.mp4')
+frame_number = 0
+
+
+while True:
+
+  ret, frame = input_movie.read()
+
+  frame_number += 1
+  if not ret:
+    print(f'На кадре {frame_number} все кончилось')
+    break
+  rgb_small_frame = np.ascontiguousarray(frame[:, :, ::-1])
+
+  face_locations= face_recognition.face_locations(rgb_small_frame)
+
+  print(f'Лиц найденo {len(face_locations)}')
+  
+
+
+
+"""
+from ultralytics import YOLO
+
 def main():
-    print('Hello')
+    d = 1
 
 if __name__ == "__main__":
     main()
