@@ -1,0 +1,6 @@
+train: ./../../datasets/train/images
+val: ./../../datasets/train/images
+
+# Classes 
+nc: 1
+names: ['faces']
