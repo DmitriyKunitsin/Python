@@ -102,7 +102,11 @@ def dataset_generation():
 def train_model():
 
     model = YOLO("yolov8n.pt")
-    
+    """
+        https://docs.ultralytics.com/ru/modes/train/#train-settings
+        Дока по трейну
+        ТАм все доступные аргументы с описанием    
+    """
     results = model.train(
         data='./runs/face.yaml',
         imgsz=1280,
