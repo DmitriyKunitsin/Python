@@ -68,9 +68,7 @@ def dataset_generation():
     lenght = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
 
     while True:
-    while True:
 
-        ret, frame = input_movie.read()
         ret, frame = input_movie.read()
 
         frame_number += 1
@@ -78,13 +76,7 @@ def dataset_generation():
             print(f'На кадре {frame_number} все кончилось')
             break
         rgb_small_frame = np.ascontiguousarray(frame[:, :, ::-1])
-        frame_number += 1
-        if not ret:
-            print(f'На кадре {frame_number} все кончилось')
-            break
-        rgb_small_frame = np.ascontiguousarray(frame[:, :, ::-1])
 
-        face_locations= face_recognition.face_locations(rgb_small_frame)
         face_locations= face_recognition.face_locations(rgb_small_frame)
 
         print(f'Лиц найденo {len(face_locations)} в кадре {frame_number}')
