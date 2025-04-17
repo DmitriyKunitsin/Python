@@ -36,6 +36,8 @@ def dataset_generation():
     import os 
     import numpy as np
     os.getcwd()
+    import numpy as np
+    os.getcwd()
 
     folder_train_img = 'datasets/train/images'
     folder_train_lab = 'datasets/train/labels'
@@ -56,14 +58,19 @@ def dataset_generation():
 
     import face_recognition
     import cv2
+    import face_recognition
+    import cv2
 
     input_movie = cv2.VideoCapture('faces_train_video.mp4')
     frame_number = 0
 
     lenght = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
+    lenght = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
 
     while True:
+    while True:
 
+        ret, frame = input_movie.read()
         ret, frame = input_movie.read()
 
         frame_number += 1
@@ -71,7 +78,13 @@ def dataset_generation():
             print(f'На кадре {frame_number} все кончилось')
             break
         rgb_small_frame = np.ascontiguousarray(frame[:, :, ::-1])
+        frame_number += 1
+        if not ret:
+            print(f'На кадре {frame_number} все кончилось')
+            break
+        rgb_small_frame = np.ascontiguousarray(frame[:, :, ::-1])
 
+        face_locations= face_recognition.face_locations(rgb_small_frame)
         face_locations= face_recognition.face_locations(rgb_small_frame)
 
         print(f'Лиц найденo {len(face_locations)} в кадре {frame_number}')
