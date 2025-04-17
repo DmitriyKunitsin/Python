@@ -33,42 +33,6 @@
         Чем больше модель, тем лучше качество предсканаия можно добится, но тем медленей будет работать
 """
 """
-    import os 
-import numpy as np
-os.getcwd()
-
-
-# if not os.path.exists('yaml'):
-# os.mkdir('yaml')
-os.makedirs('yaml/train/images', exist_ok=True)
-os.makedirs('yaml/train/labels', exist_ok=True)
-os.makedirs('yaml/val/images', exist_ok=True)
-os.makedirs('yaml/val/labels', exist_ok=True)
-
-import face_recognition
-import cv2
-
-input_movie = cv2.VideoCapture('/content/test_video.mp4')
-frame_number = 0
-
-
-while True:
-
-  ret, frame = input_movie.read()
-
-  frame_number += 1
-  if not ret:
-    print(f'На кадре {frame_number} все кончилось')
-    break
-  rgb_small_frame = np.ascontiguousarray(frame[:, :, ::-1])
-
-  face_locations= face_recognition.face_locations(rgb_small_frame)
-
-  print(f'Лиц найденo {len(face_locations)}')
-  
-
-
-
 """
 from ultralytics import YOLO
 
@@ -77,3 +41,69 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def dataset_generation():
+    import os 
+    import numpy as np
+    os.getcwd()
+
+    folder_train_img = 'runs/train/images'
+    folder_train_lab = 'runs/train/labels'
+    folder_val_img = 'runs/val/images'
+    folder_val_lab = 'runs/val/labels'
+
+    if  os.path.exists('runs'):
+        import shutil
+        shutil.rmtree('/content/runs')
+
+
+    os.makedirs(folder_train_img, exist_ok=True)
+    os.makedirs(folder_train_lab, exist_ok=True)
+    os.makedirs(folder_val_img, exist_ok=True)
+    os.makedirs(folder_val_lab, exist_ok=True)
+
+
+    import face_recognition
+    import cv2
+
+    input_movie = cv2.VideoCapture('/content/test_video.mp4')
+    frame_number = 0
+
+    lenght = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    while True:
+
+        ret, frame = input_movie.read()
+
+        frame_number += 1
+        if not ret:
+            print(f'На кадре {frame_number} все кончилось')
+            break
+        rgb_small_frame = np.ascontiguousarray(frame[:, :, ::-1])
+
+        face_locations= face_recognition.face_locations(rgb_small_frame)
+
+        print(f'Лиц найденo {len(face_locations)} в кадре {frame_number}')
+        folder_write = (folder_train_img, folder_train_lab) if frame_number % 2 == 0 else (folder_val_img, folder_val_lab)
+        image_folder, label_folder = folder_write
+
+        if(len(face_locations) > 0):
+            cv2.imwrite(os.path.join(image_folder,f"image_{frame_number}.png"),img=frame)
+            with open(os.path.join(label_folder,f"image_{frame_number}.txt"), "w") as newfile:
+                for (top, right, bottom, left) in (face_locations):  
+                    center_x = (left + right) / 2 / frame.shape[1]
+                    center_y = (top + bottom) / 2 / frame.shape[0]
+                    width = (right - left) / frame.shape[1]
+                    height = (bottom - top) / frame.shape[0]   
+                    newfile.writelines(f"0 {center_x} {center_y} {width} {height}\n")
+                
+        print(f"Кадр {frame_number} / {lenght} обработан")
+
+    with open(f"runs/face.yaml", "w") as finalfile:
+        finalfile.writelines(f"train: {folder_train_img}\n")
+        finalfile.writelines(f"val: {folder_val_img}\n")
+        finalfile.writelines("\n")
+        finalfile.writelines("# Classes \n")
+        finalfile.writelines(f"nc: {1}\n")
+        finalfile.writelines(f"names: ['faces']\n")
+    print('Конец')
