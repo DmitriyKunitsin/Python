@@ -115,15 +115,20 @@ def train_model():
 def predict_model():
 
     model = YOLO("runs/detect/YOLOv8n9/weights/best.pt")
-
+    """
+        https://docs.ultralytics.com/ru/modes/predict/#inference-arguments
+        Дока по предикту
+        ТАм все доступные аргументы с описанием    
+    """
     predict = model.predict(
     source="face_predict_video.mp4", 
-    show=True,                                                  
-    imgsz=1280,                                                 
-    hide_labels=True,                                           
+    imgsz=(1280, 1080),                                                 
+    hide_labels=False,                                           
     save=True,                                                  
     name="results",                                                 
-    conf=0.1,                                                   
+    conf=0.25,       
+    max_det=3,
+    verbose=True                                            
     )
 
 def convert_avi_to_mp4(avi_file_path):
@@ -148,13 +153,13 @@ def main():
     dataset_generation()
 
     # Обучаю модель на видео
-    train_model()
+    # train_model()
 
     # Предсказываю и указываю где лица
-    predict_model()
+    # predict_model()
 
     # Конвертирую форматы видеоC:\Users\d.kunicin\Python\Python\Magistatura\ML\Semester_2\Lab_13\runs\detect\results\face_predict_video.avi
-    convert_avi_to_mp4(r"runs\detect\results\face_predict_video.avi")
+    # convert_avi_to_mp4(r"runs\detect\results\face_predict_video.avi")
 
 if __name__ == "__main__":
     main()
