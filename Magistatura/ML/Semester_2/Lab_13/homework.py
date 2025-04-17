@@ -36,8 +36,6 @@ def dataset_generation():
     import os 
     import numpy as np
     os.getcwd()
-    import numpy as np
-    os.getcwd()
 
     folder_train_img = 'datasets/train/images'
     folder_train_lab = 'datasets/train/labels'
@@ -58,13 +56,10 @@ def dataset_generation():
 
     import face_recognition
     import cv2
-    import face_recognition
-    import cv2
 
     input_movie = cv2.VideoCapture('faces_train_video.mp4')
     frame_number = 0
 
-    lenght = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
     lenght = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
 
     while True:
