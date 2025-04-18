@@ -32,6 +32,55 @@
     Виды размеров : Nano (*n.pt), Small (*s.pt), Medium (*m.pt), Large (*l.pt), Huge (*x.pt)
         Чем больше модель, тем лучше качество предсканаия можно добится, но тем медленей будет работать
 """
+
+def get_key(d, value):
+    for k, v in d.items():
+        if v == value:
+            return k
+def get_search_classes(dict, need_classes):
+
+    valid_classes = {}
+    for val in need_classes:
+        key = get_key(dict, val)
+        if  key is not None:
+            valid_classes[key] = dict[key]
+    return list(valid_classes.keys())
+
+def detect_photo(path, need_classes = []):
+    import cv2
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from ultralytics import YOLO
+    import os
+
+    model = YOLO("yolov8x.pt")
+    need_classes = [val for key , val in  model.names.items()] if not need_classes else need_classes  
+    detected_classes = get_search_classes(model.names, need_classes)
+    photos = list(filter(lambda x : '.png' in x, os.listdir(path)))
+    for photo in photos:
+        photo = os.path.join(path, photo)
+        resluts = model.predict(source=photo, classes=detected_classes)
+        result = resluts[0]
+
+        image = cv2.imread(photo)
+
+        for box in result.boxes:
+            class_id = result.names[box.cls[0].item()]
+            cords = box.xyxy[0].tolist()
+            cords = [round(x) for x in cords] 
+            conf = round(box.conf[0].item(), 2)
+
+            cv2.rectangle(image, (cords[0], cords[1]), (cords[2], cords[3]), (0,255,0), 2)
+
+            label = f"{class_id} {conf}"
+            cv2.putText(image, label, (cords[0], cords[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (40, 38, 200), 2)
+        
+        plt.figure(figsize=(8,8), dpi=90)
+        plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        plt.show()
+        cv2.waitKey(0)
+    
+
 def dataset_generation():
     import os 
     import numpy as np
@@ -150,20 +199,49 @@ def convert_avi_to_mp4(avi_file_path):
     print('Finished conversion in %is' % (time() - t0))
 
 from ultralytics import YOLO
+import time
+RESET = "\033[0m"
+RED = "\033[31m"
+GREEN = "\033[32m"  
 
 path_date = ''
 def main():
+    # Ищу мишек на фотке без ограничей в классах поиска
+    print(f'{GREEN}Начало работы программы{RESET}')
+    strat_time = time.time()
+    detect_photo(r'bear_dog_photo')
+    end_time = time.time()
+    print(f'{GREEN}Время выполнения детекции фото {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
+    # Ищу 2 определенных класса
+    # strat_time = time.time()
+    # detect_classes = {'bear', 'cat'}
+    # detect_photo(r'animals', detect_classes)
+    # end_time = time.time()
+    # print(f'{GREEN}Время выполнения детекции фото 2 классов  {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
+
     # Генерирую данные для обучения модели
-    dataset_generation()
+    # strat_time = time.time()
+    # dataset_generation()
+    # end_time = time.time()
+    # print(f'{GREEN}Время выполнения генерации данных для обучения {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
 
     # Обучаю модель на видео
+    # strat_time = time.time()
     # train_model()
+    # end_time = time.time()
+    # print(f'{GREEN}Время выполнения обучения модели {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
 
     # Предсказываю и указываю где лица
+    # strat_time = time.time()
     # predict_model()
+    # end_time = time.time()
+    # print(f'{GREEN}Время выполнения предсказания {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
 
-    # Конвертирую форматы видеоC:\Users\d.kunicin\Python\Python\Magistatura\ML\Semester_2\Lab_13\runs\detect\results\face_predict_video.avi
-    # convert_avi_to_mp4(r"runs\detect\results\face_predict_video.avi")
+    # Конвертирую форматы видео
+    # strat_time = time.time()
+    # convert_avi_to_mp4(r"runs\detect\results2\face_predict_video.avi")
+    # end_time = time.time()
+    # print(f'{GREEN}Время выполнения конвертация формата {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
 
 if __name__ == "__main__":
     main()
