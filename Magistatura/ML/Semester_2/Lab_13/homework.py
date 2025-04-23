@@ -212,6 +212,7 @@ def main():
     detect_photo(r'bear_dog_photo')
     end_time = time.time()
     print(f'{GREEN}Время выполнения детекции фото {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
+    
     # Ищу 2 определенных класса
     # strat_time = time.time()
     # detect_classes = {'bear', 'cat'}
