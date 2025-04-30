@@ -207,11 +207,11 @@ GREEN = "\033[32m"
 path_date = ''
 def main():
     # Ищу мишек на фотке без ограничей в классах поиска
-    print(f'{GREEN}Начало работы программы{RESET}')
-    strat_time = time.time()
-    detect_photo(r'bear_dog_photo')
-    end_time = time.time()
-    print(f'{GREEN}Время выполнения детекции фото {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
+    # print(f'{GREEN}Начало работы программы{RESET}')
+    # strat_time = time.time()
+    # detect_photo(r'bear_dog_photo')
+    # end_time = time.time()
+    # print(f'{GREEN}Время выполнения детекции фото {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
     
     # Ищу 2 определенных класса
     # strat_time = time.time()
