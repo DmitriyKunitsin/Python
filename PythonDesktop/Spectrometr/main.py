@@ -1,3 +1,4 @@
+from Model.SKLP import SKLP
 import sys
 from PyQt5.QtWidgets import QApplication
 
