@@ -222,7 +222,7 @@ def main():
 
     # Генерирую данные для обучения модели
     # strat_time = time.time()
-    # dataset_generation()
+    dataset_generation()
     # end_time = time.time()
     # print(f'{GREEN}Время выполнения генерации данных для обучения {RED}{end_time-strat_time}{GREEN} секунд{RESET}')
 
