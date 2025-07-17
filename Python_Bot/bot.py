@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from token import TOKEN
+from my_token import TOKEN
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, InlineQueryHandler
 
