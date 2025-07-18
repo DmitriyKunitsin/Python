@@ -31,7 +31,7 @@ class FitnessBot:
         commands = [
             lib.BotCommand("start", "Запустить бота"),
             lib.BotCommand("help", "Помощь"),
-            lib.BotCommand("caps", "Каплок"),
+            lib.BotCommand("caps", "Капcлок"),
             lib.BotCommand("my", "Информация о себе"),
         ]
         assert self.application is not None
