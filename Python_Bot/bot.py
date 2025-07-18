@@ -3,30 +3,44 @@ from my_token import TOKEN
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters, InlineQueryHandler, CallbackQueryHandler,InvalidCallbackData,PicklePersistence
 from typing import cast
-
+import db.sqliteDb as db
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-    # message = (
-    #     "Привет! Я твой бот-помощник в мире фитнеса.\n"
-    #     "Я могу быть полезен спортсменам следующим образом:\n"
-    #     "- Отвечаю на вопросы по тренировкам и питанию\n"
-    #     "- Помогаю отслеживать прогресс и ставить цели\n"
-    #     "- Могу напомнить о тренировке или воде\n"
-    #     "- Дам советы по восстановлению и мотивации\n\n"
-    #     "Напиши команду или вопрос, чтобы начать!"
-    # )
-    #await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    db.add_or_update_user(user)
     try:
-        keyboard = build_keyboard()
-        await update.message.reply_text("Выберите действие", reply_markup=keyboard)
+        message = (
+            "Привет! Я твой бот-помощник в мире фитнеса.\n"
+            "Я могу быть полезен спортсменам следующим образом:\n"
+            "- Отвечаю на вопросы по тренировкам и питанию\n"
+            "- Помогаю отслеживать прогресс и ставить цели\n"
+            "- Могу напомнить о тренировке или воде\n"
+            "- Дам советы по восстановлению и мотивации\n\n"
+            "Напиши команду или вопрос, чтобы начать!"
+        )   
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
     except:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Неудалось обработать комманду")
-    
 
+async def my_command(update: Update, context: ContextTypes.DEFAULT_TYPE):    
+    try:
+        user = db.get_user_data(user_id=update.effective_chat.id)
+        if user is None:
+            Exception
+        answer = ("Ваша учетная запись успешно найдена!\n"
+                  "Ваши данные :\n"
+                  f"ID : {user[0]}\n"
+                  f"User Name : {user[1]}\n"
+                  f"First Name : {user[2]}\n"
+                  f"Last Name : {user[3]}\n"
+                  f"Full Name : {user[4]}\n")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=answer)
+    except Exception as ex:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Не удалось вас определить ({ex})")
 async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Я не знаю, что делать с этим сообщением")
 
@@ -104,6 +118,7 @@ if __name__ == "__main__":
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_message))
     application.add_handler(CommandHandler("caps", caps_command))
+    application.add_handler(CommandHandler("my", my_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(InlineQueryHandler(inline_caps))
     application.add_handler(MessageHandler(filters.COMMAND, unknown_message))
