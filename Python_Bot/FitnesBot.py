@@ -2,14 +2,32 @@ import myLibary as lib
 
 class FitnessBot:
     def __init__(self, token: str, persistence_path: lib.Optional[str] = None) -> None:
+        """
+        Инициализация экземпляра бота.
+
+        Args:
+            token (str): Токен Telegram-бота для аутентификации.
+            persistence_path (lib.Optional[str], optional): Путь к файлу для сохранения состояния бота (постоянство данных). По умолчанию None.
+        """
         self.token = token
         self.persistence_path  = persistence_path
         self.application: lib.Optional[lib.Application] = None
     def _setup_event_loop_policy(self) -> None:
+        """
+        Настройка политики цикла событий asyncio для Windows.
+
+        На Windows по умолчанию используется ProactorEventLoop, 
+        который может не работать с некоторыми библиотеками, поэтому здесь переключаем на SelectorEventLoop.
+        """
         if lib.sys.platform.startswith("win"):
             lib.asyncio.set_event_loop_policy(lib.asyncio.WindowsSelectorEventLoopPolicy())
     async def setup_bot(self) -> None:
-        
+        """
+        Асинхронная настройка бота: установка команд и меню.
+
+        Создаёт список команд бота, которые будут отображаться в интерфейсе Telegram,
+        а также настраивает меню чата.
+        """
         commands = [
             lib.BotCommand("start", "Запустить бота"),
             lib.BotCommand("help", "Помощь"),
@@ -20,13 +38,27 @@ class FitnessBot:
         await self.application.bot.set_my_commands(commands)
         await self.application.bot.set_chat_menu_button(menu_button=lib.MenuButtonCommands())
     def build_keyboard(self, current_list: lib.Optional[lib.List[int]] = None) -> lib.InlineKeyboardMarkup:
-        # Пример простой клавиатуры с двумя кнопками
+        """
+        Построение клавиатуры с кнопками для интерфейса Telegram.
+
+        Args:
+            current_list (lib.Optional[lib.List[int]], optional): Список идентификаторов или состояний, которые могут влиять на отображение клавиатуры. По умолчанию None.
+
+        Returns:
+            lib.InlineKeyboardMarkup: Объект клавиатуры с кнопками для отправки в Telegram.
+        """
         buttons = [
             lib.InlineKeyboardButton("Кнопка 1", callback_data="btn1"),
             lib.InlineKeyboardButton("Кнопка 2", callback_data="btn2"),
         ]
         return lib.InlineKeyboardMarkup.from_row(buttons)
     def register_handles(self) -> None:
+        """
+        Регистрирует обработчики событий для бота.
+
+        Добавляет в приложение различные хендлеры для обработки команд,
+        сообщений, inline-запросов и нажатий на кнопки.
+        """
         assert self.application is not None
         self.application.add_handler(lib.CommandHandler("start", lib.cmd.start_command))
         self.application.add_handler(lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.echo_message))
@@ -39,6 +71,14 @@ class FitnessBot:
         self.application.add_handler(lib.CallbackQueryHandler(lib.cmd.list_button))
         
     async def run(self) -> None:
+        """
+        Запускает бота.
+
+        Настраивает политику цикла событий (особенно для Windows),
+        создаёт объект приложения с указанным токеном и опциональной 
+        персистентностью, регистрирует обработчики, настраивает команды
+        и запускает цикл опроса Telegram.
+        """
         self._setup_event_loop_policy()
         persistence = (
             lib.PicklePersistence(filepath=self.persistence_path) if self.persistence_path else None
