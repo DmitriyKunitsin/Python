@@ -167,7 +167,11 @@ async def my_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             f"дата регистрации : {user_profile.register_date}\n"
         )
         await context.bot.send_message(chat_id=update.effective_chat.id, text=answer)
-    except Exception as ex:
+    except ValueError as ex:
+        print(ex)
+    except FileNotFoundError as ex:
+        print(ex)
+    except RuntimeError as ex:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Не удалось вас определить ({ex})")
 
 async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

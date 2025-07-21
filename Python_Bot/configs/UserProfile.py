@@ -42,7 +42,7 @@ class UserProfile:
             height = (self.height / 100)
             self.iwm = self.weight / (height * height)
             return float('{:.1f}'.format(self.iwm))
-        except Exception as ex:
+        except (ValueError, TypeError) as ex:
             print(f'Ошибка при рассчете ИМТ ({ex})')
             return "Неудалось рассчитать"
         
