@@ -1,4 +1,6 @@
 my_token.py
 __pycache__
-bot_database.db
+db/bot_database.db
+db/bot_database.db-journal
 arbitrarycallbackdatabot
+../bot_database.db

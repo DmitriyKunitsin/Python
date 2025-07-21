@@ -2,6 +2,10 @@ import sqlite3
 
 import os
 
+NAME_CONST_TABLE_USERS = "users"
+NAME_CONST_TABLE_TRAININGS = "trainings"
+NAME_CONST_TABLE_WORKOUTS = "workouts"
+
 db_path = "db\\bot_database.db"
 if os.path.exists(db_path):
     print(f"Удаляю файл базы {db_path}")
@@ -13,8 +17,8 @@ connect = sqlite3.connect("db\\bot_database.db", check_same_thread=False)
 cursor = connect.cursor()
     
 # Таблица с пользователем   
-cursor.execute('''
-CREATE TABLE users (
+cursor.execute(f'''
+CREATE TABLE {NAME_CONST_TABLE_USERS} (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT, -- уникальный Telegram ID пользователя
     username TEXT,                        -- имя пользователя (@username)
     first_name TEXT,                      -- имя
@@ -23,9 +27,10 @@ CREATE TABLE users (
     language_code TEXT,                   -- язык пользователя
     is_bot BOOLEAN DEFAULT 0,             -- флаг, является ли пользователь ботом
     is_premium_activeted BOOLEAN DEFAULT 1, -- Флаг, является ли пользователь премиум подписчиком
-    height_user REAL,                   -- Рост пользователя
-    weight_user REAL,                   --- Вес пользователя
+    height_user REAL CHECK(height_user >= 50 AND height_user <= 272),                   -- Рост пользователя
+    weight_user REAL CHECK(weight_user >= 2 AND weight_user <= 635),                   --- Вес пользователя
     IWM_user REAL,                      -- ИМТ пользователя
+    gender TEXT CHECK(gender IN ('Boy', 'Girl')),
     age_user INTEGER CHECK(age_user > 0 AND age_user < 100),-- Возраст пользователя
     email TEXT UNIQUE,                  -- Email пользователя ( только уникальный )
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- дата и время добавления пользователя в БД
@@ -35,8 +40,8 @@ connect.commit()
 
 # Таблица программы конкретного пользователя
 cursor.execute(
-    '''
-    CREATE TABLE trainings (
+    f'''
+    CREATE TABLE {NAME_CONST_TABLE_TRAININGS} (
     training_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,               -- внешний ключ на users.user_id
     training_name TEXT NOT NULL,            -- название программы
@@ -61,8 +66,8 @@ connect.commit()
 
 # Таблица с результатами тренировок
 cursor.execute(
-    '''
-    CREATE TABLE workouts (
+    f'''
+    CREATE TABLE {NAME_CONST_TABLE_WORKOUTS} (
     workout_id INTEGER PRIMARY KEY AUTOINCREMENT,
     training_id INTEGER NOT NULL,          -- внешний ключ на trainings.training_id
     exercise_name TEXT NOT NULL,          -- название упражнения
@@ -86,8 +91,8 @@ CREATE INDEX idx_workoutss_user_id ON workouts(training_id);
 connect.commit()
 
 def add_or_update_user(user):
-    cursor.execute('''
-        INSERT INTO users(user_id, username, first_name, last_name,full_name)
+    cursor.execute(f'''
+        INSERT INTO {NAME_CONST_TABLE_USERS}(user_id, username, first_name, last_name,full_name)
         VALUES (?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
             username=excluded.username,
@@ -98,6 +103,56 @@ def add_or_update_user(user):
     connect.commit()
 
 def get_user_data(user_id: int) -> str | None:
-    cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+    cursor.execute(f'SELECT * FROM {NAME_CONST_TABLE_USERS} WHERE user_id = ?', (user_id,))
     row = cursor.fetchone()
     return row if row else None
+
+def set_user_age(user ,age) -> str | None:
+    try:
+        cursor.execute(f'''
+                    UPDATE {NAME_CONST_TABLE_USERS}
+                    SET  age_user = {age}
+                    WHERE user_id = {user.id}
+                    ''')
+        connect.commit()
+    except Exception as ex:
+        print(f'Ошибка при записи в базу данных {ex}')
+        return f"{ex}"
+    return "Успешно"
+
+def set_user_weight(user ,weight) -> str | None:
+    try:
+        cursor.execute(f'''
+                    UPDATE {NAME_CONST_TABLE_USERS}
+                    SET  weight_user = ?
+                    WHERE user_id = ?
+                    ''', (weight, user.id))
+        connect.commit()
+    except Exception as ex:
+        print(f'Ошибка при записи в базу данных {ex}')
+        return f"{ex}"
+    return "Успешно"
+
+def set_user_height(user, height) -> str | bool:
+    try:
+        cursor.execute(f'''
+                    UPDATE {NAME_CONST_TABLE_USERS}
+                    SET  height_user = ?
+                    WHERE user_id = ?
+                    ''', (height, user.id))
+    except Exception as ex:
+        print(f'Ошибка при записи в базу данных {ex}')
+        return f"{ex}"
+    return True    
+
+def set_user_gender(user, gender) -> str | bool:
+    try:
+        cursor.execute(f'''
+            UPDATE {NAME_CONST_TABLE_USERS}
+            SET gender = ?
+            WHERE user_id = ?
+        ''', (gender, user.id))
+    except Exception as ex:
+        print(f'Ошибка при записи в базу данных {ex}')
+        return f"{ex}"
+    return True
