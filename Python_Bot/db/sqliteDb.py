@@ -2,10 +2,14 @@ import sqlite3
 
 import os
 
-if os.path.exists("bot_database.db"):
-    os.remove("bot_database.db")
-
-connect = sqlite3.connect("bot_database.db", check_same_thread=False)
+db_path = "db\\bot_database.db"
+if os.path.exists(db_path):
+    print(f"Удаляю файл базы {db_path}")
+    os.remove(db_path)
+else:
+    print(f"Файл базы {db_path} не найден, удаление не требуется")
+    
+connect = sqlite3.connect("db\\bot_database.db", check_same_thread=False)
 cursor = connect.cursor()
     
 # Таблица с пользователем   
@@ -22,7 +26,7 @@ CREATE TABLE users (
     height_user REAL,                   -- Рост пользователя
     weight_user REAL,                   --- Вес пользователя
     IWM_user REAL,                      -- ИМТ пользователя
-    age_user INTEGER CHECK(age > 0 AND age < 100),-- Возраст пользователя
+    age_user INTEGER CHECK(age_user > 0 AND age_user < 100),-- Возраст пользователя
     email TEXT UNIQUE,                  -- Email пользователя ( только уникальный )
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- дата и время добавления пользователя в БД
 )
@@ -75,7 +79,7 @@ connect.commit()
 # Индекс на таблицу, для ускорения сортировки быстрый (индексированный) доступ ко вторичным ключам
 cursor.execute(
     '''
-CREATE INDEX idx_trainings_user_id ON workouts(training_id);
+CREATE INDEX idx_workoutss_user_id ON workouts(training_id);
 
     '''
 )

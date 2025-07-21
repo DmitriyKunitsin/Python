@@ -1,4 +1,5 @@
 import myLibary as lib
+from configs.userData import ASK_AGE
 
 class FitnessBot:
     def __init__(self, token: str, persistence_path: lib.Optional[str] = None) -> None:
@@ -33,6 +34,7 @@ class FitnessBot:
             lib.BotCommand("help", "Помощь"),
             lib.BotCommand("caps", "Капcлок"),
             lib.BotCommand("my", "Информация о себе"),
+            lib.BotCommand("reg", "Регистрация")
         ]
         assert self.application is not None
         await self.application.bot.set_my_commands(commands)
@@ -61,10 +63,21 @@ class FitnessBot:
         """
         assert self.application is not None
         self.application.add_handler(lib.CommandHandler("start", lib.cmd.start_command))
-        self.application.add_handler(lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.echo_message))
+        #self.application.add_handler(lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.echo_message))
         self.application.add_handler(lib.CommandHandler("caps", lib.cmd.caps_command))
         self.application.add_handler(lib.CommandHandler("my",lib.cmd.my_command))
         self.application.add_handler(lib.CommandHandler("help", lib.cmd.help_command))
+        
+        conv_handler = lib.ConversationHandler(
+            entry_points = [
+                lib.CommandHandler("reg", lib.cmd.register_command)],
+            states={
+                ASK_AGE: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_age)]
+            },
+            fallbacks=[lib.CommandHandler('cancel', lib.cmd.cancel)],
+        )
+        
+        self.application.add_handler(conv_handler)
         self.application.add_handler(lib.InlineQueryHandler(lib.cmd.inline_caps))
         self.application.add_handler(lib.MessageHandler(lib.filters.COMMAND, lib.cmd.unknown_message))
         self.application.add_handler(lib.CallbackQueryHandler(lib.cmd.handle_invalid_button, pattern=lib.InvalidCallbackData))

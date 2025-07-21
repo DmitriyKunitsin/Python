@@ -3,7 +3,7 @@ import sys
 import asyncio
 import nest_asyncio
 from typing import Optional, Tuple, List, cast
-import cmd.botCommand as cmd
+import cmdDir.botCommand as cmd
 
 from telegram import (
     Update,
@@ -25,7 +25,9 @@ from telegram.ext import (
     filters,
     PicklePersistence,
     InvalidCallbackData,
+    ConversationHandler
 )
+
 
 import db.sqliteDb as db
 from my_token import TOKEN
