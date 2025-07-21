@@ -11,14 +11,19 @@ cursor = connect.cursor()
 # Таблица с пользователем   
 cursor.execute('''
 CREATE TABLE users (
-    user_id INTEGER PRIMARY KEY,          -- уникальный Telegram ID пользователя
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT, -- уникальный Telegram ID пользователя
     username TEXT,                        -- имя пользователя (@username)
     first_name TEXT,                      -- имя
     last_name TEXT,                       -- фамилия
     full_name TEXT,                       -- полное имя (можно формировать из first_name + last_name)
     language_code TEXT,                   -- язык пользователя
     is_bot BOOLEAN DEFAULT 0,             -- флаг, является ли пользователь ботом
-    is_premium_activeted BOOLEAN DEFAULT 1 -- Флаг, является ли пользователь премиум подписчиком
+    is_premium_activeted BOOLEAN DEFAULT 1, -- Флаг, является ли пользователь премиум подписчиком
+    height_user REAL,                   -- Рост пользователя
+    weight_user REAL,                   --- Вес пользователя
+    IWM_user REAL,                      -- ИМТ пользователя
+    age_user INTEGER CHECK(age > 0 AND age < 100),-- Возраст пользователя
+    email TEXT UNIQUE,                  -- Email пользователя ( только уникальный )
     added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- дата и время добавления пользователя в БД
 )
 ''')
