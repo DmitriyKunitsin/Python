@@ -73,7 +73,7 @@ class FitnessBot:
                 ASK_GENDER: [lib.MessageHandler(lib.filters.Regex('^(Boy|Girl)$'), lib.cmd.ask_gender),
                                 lib.CommandHandler('skip', lib.cmd.make_skip_handler(lib.ConversationHandler.END))],
             },
-            fallbacks=[lib.CommandHandler('cancel', lib.cmd.cancel)],
+            fallbacks=[lib.CommandHandler('Cancel', lib.cmd.cancel)],
         )
     
     def register_handles(self) -> None:

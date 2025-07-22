@@ -57,7 +57,7 @@ async def ask_height(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return ASK_HEIGHT
     context.user_data[Name_BOT_data].height = height
     # Список кнопок для ответа
-    reply_keyboard = [['Boy', 'Girl']]
+    reply_keyboard = [['Boy', 'Girl', '/cancel']]
     # Создаем простую клавиатуру для ответа
     markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
     await update.message.reply_text(f"Спасибо! Ваш рост {height} сохранён. ")
@@ -82,13 +82,15 @@ async def ask_weight(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text("Кажется ваши весы сломаны\n Давай попробуем снова, введите свой вес")
         return ASK_WEIGHT
     context.user_data[Name_BOT_data].weight = weight
+    reply_keyboard = [['/cancel']]
+    markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
     await update.message.reply_text(f"Спасибо! Ваш вес {weight} сохранён.")
     await update.message.reply_text(
         (
             "Введите ваш рост , пожалуйста \n" 
             "Oтправь /skip, если стесняешься." 
         ),
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=markup_key,
     )
     return ASK_HEIGHT
 
@@ -105,6 +107,8 @@ async def ask_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text("Не брат, столько не живут. Укажите возраст от 1 до 99.")
         return ASK_AGE
     context.user_data[Name_BOT_data].age = age
+    reply_keyboard = [['/cancel']]
+    markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
     await update.message.reply_text(f"Спасибо! Ваш возраст {age} сохранён.\n")
     # Следующее сообщение с удалением клавиатуры `ReplyKeyboardRemove`
     await update.message.reply_text(
@@ -112,7 +116,7 @@ async def ask_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             "Введите ваш вес , пожалуйста \n" 
             "Oтправь /skip, если стесняешься." 
         ),
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=markup_key,
     )
     return ASK_WEIGHT
 
@@ -123,9 +127,11 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def register_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(text="Укажите свой возраст")
     # Следующее сообщение с удалением клавиатуры `ReplyKeyboardRemove`
+    reply_keyboard = [['/cancel']]
+    markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
     await update.message.reply_text(
         'Oтправь /skip, если стесняешься.',
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=markup_key,
     )
     return ASK_AGE
 
@@ -141,7 +147,7 @@ def make_skip_handler(next_step):
 # Конец методов диалога
 async def my_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        user_profile = UserProfile.load_foarm(update.effective_user.id)#context.user_data[Name_BOT_data]
+        user_profile = context.user_data[Name_BOT_data]  = UserProfile.load_foarm(update.effective_user.id)
         if user_profile is None:
             print(f'Не удалось найти пользователя {update.effective_user.username} в базе данных')
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Вас {update.effective_user.username} не удалось найти в базе данных, пройдите пожалуйста регистрацию')
