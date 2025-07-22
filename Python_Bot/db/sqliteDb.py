@@ -1,5 +1,5 @@
 import sqlite3
-
+from configs.UserProfile import UserProfile
 import os
 
 NAME_CONST_TABLE_USERS = "users"
@@ -7,29 +7,29 @@ NAME_CONST_TABLE_TRAININGS = "trainings"
 NAME_CONST_TABLE_WORKOUTS = "workouts"
 db_path = r"Python_Bot\\db\\bot_database.db"
 is_corect = False
+is_create_db = False
 folder = os.path.dirname(db_path)
+if False:
+    print(f"Удаляю файл базы {db_path}")
+    os.remove(db_path)
 if not os.path.exists(folder):
     os.makedirs(folder)
-if os.path.exists(db_path):
+if not os.path.exists(db_path):
+    connect_one = sqlite3.connect(db_path, check_same_thread=False)
+    print('Создал базу данных')
+    is_create_db = True
     is_corect = True
-    print("Подключен к базе данных")
+else:
+    is_corect = True
+    print("Присутствует база данных, база данных заново не создавалась")
 if is_corect:
     """
     ! При необходимости удалить базу данных поставил True
     """
-    if False:
-        connect = sqlite3.connect(db_path, check_same_thread=False)
-        cursor = connect.cursor()
-        db_path = "db\\bot_database.db"
-        if os.path.exists(db_path):
-            print(f"Удаляю файл базы {db_path}")
-            os.remove(db_path)
-        else:
-            print(f"Файл базы {db_path} не найден, удаление не требуется")
-            
-            
+    if is_create_db:
+        cursor_one = connect_one.cursor()
         # Таблица с пользователем   
-        cursor.execute(f'''
+        cursor_one.execute(f'''
         CREATE TABLE {NAME_CONST_TABLE_USERS} (
             user_id INTEGER PRIMARY KEY AUTOINCREMENT, -- уникальный Telegram ID пользователя
             username TEXT,                        -- имя пользователя (@username)
@@ -48,10 +48,10 @@ if is_corect:
             added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- дата и время добавления пользователя в БД
         )
         ''')
-        connect.commit()
-
+        connect_one.commit()
+        print('Создал таблицу пользователей')
         # Таблица программы конкретного пользователя
-        cursor.execute(
+        cursor_one.execute(
             f'''
             CREATE TABLE {NAME_CONST_TABLE_TRAININGS} (
             training_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,19 +65,19 @@ if is_corect:
             )
             '''
         )
-        connect.commit()
-
+        connect_one.commit()
+        print('Создал таблицу программ')
         # Индекс на таблицу, для ускорения сортировки быстрый (индексированный) доступ ко вторичным ключам
-        cursor.execute(
+        cursor_one.execute(
             '''
         CREATE INDEX idx_trainings_user_id ON trainings(user_id);
 
             '''
         )
-        connect.commit()
+        connect_one.commit()
 
         # Таблица с результатами тренировок
-        cursor.execute(
+        cursor_one.execute(
             f'''
             CREATE TABLE {NAME_CONST_TABLE_WORKOUTS} (
             workout_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,124 +91,196 @@ if is_corect:
             )
             '''
         )
-        connect.commit()
-
+        connect_one.commit()
+        print('Создал таблицу тренировок')
         # Индекс на таблицу, для ускорения сортировки быстрый (индексированный) доступ ко вторичным ключам
-        cursor.execute(
+        cursor_one.execute(
             '''
         CREATE INDEX idx_workoutss_user_id ON workouts(training_id);
 
             '''
         )
-        connect.commit()
-
-def connect_to_db():
-    if not os.path.exists(db_path):
-        raise FileNotFoundError(f"База данных не найдена по пути: {db_path}")
-    connect = sqlite3.connect(db_path, check_same_thread=False)
-    cursor = connect.cursor()
-    return connect, cursor
-
-def add_or_update_user(user):
-    connect, cursor = connect_to_db()
-    if connect is None or cursor is None:
-        print("Ошибка: база данных отсутствует")
-    else:
-        cursor.execute(f'''
-            INSERT INTO {NAME_CONST_TABLE_USERS}(user_id, username, first_name, last_name,full_name)
-            VALUES (?, ?, ?, ?, ?)
+        connect_one.commit()
+    def connect_to_db():
+        if not os.path.exists(db_path):
+            raise FileNotFoundError(f"База данных не найдена по пути: {db_path}")
+        connect = sqlite3.connect(db_path, check_same_thread=False)
+        cursor = connect.cursor()
+        return connect, cursor
+    def add_or_update_user(user : UserProfile):
+        connect, cursor = connect_to_db()
+        if connect is None or cursor is None:
+            print("Ошибка: база данных отсутствует")
+        else:
+            sql = f'''
+            INSERT INTO {NAME_CONST_TABLE_USERS} (
+                user_id,
+                username,
+                first_name,
+                last_name,
+                full_name,
+                is_premium_activeted,
+                height_user,
+                weight_user,
+                IWM_user,
+                gender,
+                age_user,
+                email
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(user_id) DO UPDATE SET
-                username=excluded.username,
-                first_name=excluded.first_name,
-                last_name=excluded.last_name,
-                full_name=excluded.full_name
-        ''', (user.id, user.username, user.first_name, user.last_name, user.full_name))
-        connect.commit()
+                username = excluded.username,
+                first_name = excluded.first_name,
+                last_name = excluded.last_name,
+                full_name = excluded.full_name,
+                is_premium_activeted = excluded.is_premium_activeted,
+                height_user = excluded.height_user,
+                weight_user = excluded.weight_user,
+                IWM_user = excluded.IWM_user,
+                gender = excluded.gender,
+                age_user = excluded.age_user,
+                email = excluded.email
+            '''
 
-def get_user_data(user_id: int) -> str | None:
-    try:
-        connect, cursor = connect_to_db()
-        cursor.execute(f'SELECT * FROM {NAME_CONST_TABLE_USERS} WHERE user_id = ?', (user_id,))
-        row = cursor.fetchone()
-        return row if row else None
-    except sqlite3.Error as ex:
-        # Ошибка работы с базой — пробрасываем дальше
-        raise RuntimeError(f"Ошибка базы данных: {ex}")
-    finally:
-        cursor.close()
-    
-def set_user_age(user ,age) -> str | None:
-    try:
-        connect, cursor = connect_to_db()
-        if connect is None or cursor is None:
-            print("Ошибка: база данных отсутствует")
-        else:
-            cursor.execute(f'''
-                        UPDATE {NAME_CONST_TABLE_USERS}
-                        SET  age_user = {age}
-                        WHERE user_id = {user.id}
-                        ''')
+            cursor.execute(sql, (
+                user.id,
+                user.username,
+                user.first_name,
+                user.last_name,
+                user.full_name,
+                int(user.premium),
+                user.height,
+                user.weight,
+                user.iwm,
+                user.gender,
+                user.age,
+                user.email
+            ))
             connect.commit()
-    except Exception as ex:
-        print(f'Ошибка при записи возраста в базу данных {ex}')
-        return f"{ex}"
-    finally:
-        cursor.close()
-    return "Успешно"
+    def update_data_user(user : UserProfile):
+        try:
+            connect, cursor = connect_to_db()
+            sql = f'''
+            UPDATE {NAME_CONST_TABLE_USERS}
+            SET
+                username = ?,
+                first_name = ?,
+                last_name = ?,
+                full_name = ?,
+                is_premium_activeted = ?,
+                height_user = ?,
+                weight_user = ?,
+                IWM_user = ?,
+                gender = ?,
+                age_user = ?,
+                email = ?
+            WHERE user_id = ?
+            '''
+            cursor.execute(sql, (
+                user.username,
+                user.first_name,
+                user.last_name,
+                user.full_name,
+                int(user.premium),
+                user.height,
+                user.weight,
+                user.iwm,
+                user.gender,
+                user.age,
+                user.email,
+                user.id
+            ))
+            connect.commit()
+        except sqlite3.Error as ex:
+            # Ошибка работы с базой — пробрасываем дальше
+            raise RuntimeError(f"Ошибка базы данных: {ex}")
+        finally:
+            cursor.close()
+            connect.close()
+        
+    def get_user_data(user_id: int) -> str | None:
+        try:
+            connect, cursor = connect_to_db()
+            cursor.execute(f'SELECT * FROM {NAME_CONST_TABLE_USERS} WHERE user_id = ?', (user_id,))
+            row = cursor.fetchone()
+            return row if row else None
+        except sqlite3.Error as ex:
+            # Ошибка работы с базой — пробрасываем дальше
+            raise RuntimeError(f"Ошибка базы данных: {ex}")
+        finally:
+            cursor.close()
+        
+    def set_user_age(user ,age) -> str | None:
+        try:
+            connect, cursor = connect_to_db()
+            if connect is None or cursor is None:
+                print("Ошибка: база данных отсутствует")
+            else:
+                cursor.execute(f'''
+                            UPDATE {NAME_CONST_TABLE_USERS}
+                            SET  age_user = {age}
+                            WHERE user_id = {user.id}
+                            ''')
+                connect.commit()
+        except Exception as ex:
+            print(f'Ошибка при записи возраста в базу данных {ex}')
+            return f"{ex}"
+        finally:
+            cursor.close()
+        return "Успешно"
 
-def set_user_weight(user ,weight) -> str | None:
-    try:
-        connect, cursor = connect_to_db()
-        if connect is None or cursor is None:
-            print("Ошибка: база данных отсутствует")
-        else:
-            cursor.execute(f'''
-                        UPDATE {NAME_CONST_TABLE_USERS}
-                        SET  weight_user = ?
-                        WHERE user_id = ?
-                        ''', (weight, user.id))
-            connect.commit()
-    except Exception as ex:
-        print(f'Ошибка при записи веса в базу данных {ex}')
-        return f"{ex}"
-    finally:
-        cursor.close()
-    return "Успешно"
+    def set_user_weight(user ,weight) -> str | None:
+        try:
+            connect, cursor = connect_to_db()
+            if connect is None or cursor is None:
+                print("Ошибка: база данных отсутствует")
+            else:
+                cursor.execute(f'''
+                            UPDATE {NAME_CONST_TABLE_USERS}
+                            SET  weight_user = ?
+                            WHERE user_id = ?
+                            ''', (weight, user.id))
+                connect.commit()
+        except Exception as ex:
+            print(f'Ошибка при записи веса в базу данных {ex}')
+            return f"{ex}"
+        finally:
+            cursor.close()
+        return "Успешно"
 
-def set_user_height(user, height) -> str | bool:
-    try:
-        connect, cursor = connect_to_db()
-        if connect is None or cursor is None:
-            print("Ошибка: база данных отсутствует")
-        else:
-            cursor.execute(f'''
-                        UPDATE {NAME_CONST_TABLE_USERS}
-                        SET  height_user = ?
-                        WHERE user_id = ?
-                        ''', (height, user.id))
-            connect.commit()
-    except Exception as ex:
-        print(f'Ошибка при записи роста в базу данных {ex}')
-        return f"{ex}"
-    finally:
-        cursor.close()
-    return True    
+    def set_user_height(user, height) -> str | bool:
+        try:
+            connect, cursor = connect_to_db()
+            if connect is None or cursor is None:
+                print("Ошибка: база данных отсутствует")
+            else:
+                cursor.execute(f'''
+                            UPDATE {NAME_CONST_TABLE_USERS}
+                            SET  height_user = ?
+                            WHERE user_id = ?
+                            ''', (height, user.id))
+                connect.commit()
+        except Exception as ex:
+            print(f'Ошибка при записи роста в базу данных {ex}')
+            return f"{ex}"
+        finally:
+            cursor.close()
+        return True    
 
-def set_user_gender(user, gender) -> str | bool:
-    try:
-        connect,cursor = connect_to_db()
-        if connect is None or cursor is None:
-            print("Ошибка: база данных отсутствует")
-        else:
-            cursor.execute(f'''
-                UPDATE {NAME_CONST_TABLE_USERS}
-                SET gender = ?
-                WHERE user_id = ?
-            ''', (gender, user.id))
-            connect.commit()
-    except Exception as ex:
-        print(f'Ошибка при записи пола в базу данных {ex}')
-        return f"{ex}"
-    finally:
-        cursor.close()
-    return True
+    def set_user_gender(user, gender) -> str | bool:
+        try:
+            connect,cursor = connect_to_db()
+            if connect is None or cursor is None:
+                print("Ошибка: база данных отсутствует")
+            else:
+                cursor.execute(f'''
+                    UPDATE {NAME_CONST_TABLE_USERS}
+                    SET gender = ?
+                    WHERE user_id = ?
+                ''', (gender, user.id))
+                connect.commit()
+        except Exception as ex:
+            print(f'Ошибка при записи пола в базу данных {ex}')
+            return f"{ex}"
+        finally:
+            cursor.close()
+        return True

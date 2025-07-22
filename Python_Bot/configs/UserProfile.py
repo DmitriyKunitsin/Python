@@ -45,4 +45,11 @@ class UserProfile:
         except (ValueError, TypeError) as ex:
             print(f'Ошибка при рассчете ИМТ ({ex})')
             return "Неудалось рассчитать"
+    @staticmethod
+    def load_foarm(user_id):
+        from db.sqliteDb import get_user_data
+        user = get_user_data(user_id=user_id)
+        if user is None:
+            return None
+        return UserProfile(user)
         

@@ -18,8 +18,11 @@ from telegram.ext import (
     ContextTypes,
     ConversationHandler
 )
+
+Name_BOT_data = "UserProfile"
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.effective_user
+    user = context.user_data[Name_BOT_data] = UserProfile.load_foarm(update.effective_user.id)
     db.add_or_update_user(user)
     message = (
         "Привет! Я твой бот-помощник в мире фитнеса.\n"
@@ -38,8 +41,8 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def ask_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     text = update.message.text
-    user = update.effective_user
-    db.set_user_gender(user, text)
+    context.user_data[Name_BOT_data].gender = text
+    db.add_or_update_user(context.user_data[Name_BOT_data])
     await update.message.reply_text(f"Спасибо! Ваш пол сохранён. Регистрация окончена")
     return ConversationHandler.END
 
@@ -52,11 +55,8 @@ async def ask_height(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if height < 50 or height > 272:
         await update.message.reply_text("Ого, но небывает таких людей, либо бегом в книгу рекордов гиннеса!!!\n Давай попробуем снова, введите свой рост")
         return ASK_HEIGHT
-    context.user_data['height'] = height
-    user = update.effective_user
-    db.set_user_height(user,height=height)
-    
-        # Список кнопок для ответа
+    context.user_data[Name_BOT_data].height = height
+    # Список кнопок для ответа
     reply_keyboard = [['Boy', 'Girl']]
     # Создаем простую клавиатуру для ответа
     markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -81,9 +81,7 @@ async def ask_weight(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if weight < 2 or weight > 635:
         await update.message.reply_text("Кажется ваши весы сломаны\n Давай попробуем снова, введите свой вес")
         return ASK_WEIGHT
-    context.user_data['weight'] = weight
-    user = update.effective_user
-    db.set_user_weight(user, weight=weight)
+    context.user_data[Name_BOT_data].weight = weight
     await update.message.reply_text(f"Спасибо! Ваш вес {weight} сохранён.")
     await update.message.reply_text(
         (
@@ -106,9 +104,7 @@ async def ask_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if age < 0 or age > 100:
         await update.message.reply_text("Не брат, столько не живут. Укажите возраст от 1 до 99.")
         return ASK_AGE
-    context.user_data['age'] = age
-    user = update.effective_user
-    db.set_user_age(user, age=age)
+    context.user_data[Name_BOT_data].age = age
     await update.message.reply_text(f"Спасибо! Ваш возраст {age} сохранён.\n")
     # Следующее сообщение с удалением клавиатуры `ReplyKeyboardRemove`
     await update.message.reply_text(
@@ -145,15 +141,16 @@ def make_skip_handler(next_step):
 # Конец методов диалога
 async def my_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        user = db.get_user_data(user_id=update.effective_chat.id)
-        user_profile = UserProfile(user)
-        if user is None:
-            raise ValueError("Пользователь не найден")
+        user_profile = UserProfile.load_foarm(update.effective_user.id)#context.user_data[Name_BOT_data]
+        if user_profile is None:
+            print(f'Не удалось найти пользователя {update.effective_user.username} в базе данных')
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f'Вас {update.effective_user.username} не удалось найти в базе данных, пройдите пожалуйста регистрацию')
+            return
         answer = (
             "Ваша учетная запись успешно найдена!\n"
             "Ваши данные:\n"
             f"ID: {user_profile.id}\n"
-            f"User Name: {user_profile.username}\n"
+            f"User Name: {context.bot_data[Name_BOT_data].username}\n"
             f"First Name: {user_profile.first_name}\n"
             f"Last Name: {user_profile.last_name}\n"
             f"Full Name: {user_profile.full_name}\n"

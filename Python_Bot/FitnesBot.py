@@ -1,4 +1,5 @@
 import myLibary as lib
+from configs.UserProfile import UserProfile
 from configs.userData import ASK_AGE
 from configs.userData import ASK_WEIGHT
 from configs.userData import ASK_HEIGHT
@@ -57,6 +58,24 @@ class FitnessBot:
             lib.InlineKeyboardButton("Кнопка 2", callback_data="btn2"),
         ]
         return lib.InlineKeyboardMarkup.from_row(buttons)
+    def create_conv_header(self):
+        return lib.ConversationHandler(
+            entry_points = [
+                lib.CommandHandler("reg", lib.cmd.register_command)
+            ],
+            states={
+                ASK_AGE: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_age), 
+                            lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_WEIGHT))],
+                ASK_WEIGHT: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_weight), 
+                                lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_HEIGHT))],
+                ASK_HEIGHT: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_height),
+                                lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_GENDER))],
+                ASK_GENDER: [lib.MessageHandler(lib.filters.Regex('^(Boy|Girl)$'), lib.cmd.ask_gender),
+                                lib.CommandHandler('skip', lib.cmd.make_skip_handler(lib.ConversationHandler.END))],
+            },
+            fallbacks=[lib.CommandHandler('cancel', lib.cmd.cancel)],
+        )
+    
     def register_handles(self) -> None:
         """
         Регистрирует обработчики событий для бота.
@@ -65,35 +84,16 @@ class FitnessBot:
         сообщений, inline-запросов и нажатий на кнопки.
         """
         assert self.application is not None
+        
+        
         self.application.add_handler(lib.CommandHandler("start", lib.cmd.start_command))
-        # self.application.add_handler(lib.CommandHandler("caps", lib.cmd.caps_command))
         self.application.add_handler(lib.CommandHandler("my",lib.cmd.my_command))
         self.application.add_handler(lib.CommandHandler("help", lib.cmd.help_command))
         
-        conv_handler = lib.ConversationHandler(
-            entry_points = [
-                lib.CommandHandler("reg", lib.cmd.register_command)
-            ],
-            states={
-                ASK_AGE: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_age), 
-                          lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_WEIGHT))],
-                ASK_WEIGHT: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_weight), 
-                             lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_HEIGHT))],
-                ASK_HEIGHT: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_height),
-                             lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_GENDER))],
-                ASK_GENDER: [lib.MessageHandler(lib.filters.Regex('^(Boy|Girl)$'), lib.cmd.ask_gender),
-                             lib.CommandHandler('skip', lib.cmd.make_skip_handler(lib.ConversationHandler.END))],
-            },
-            fallbacks=[lib.CommandHandler('cancel', lib.cmd.cancel)],
-        )
-        
-        self.application.add_handler(conv_handler)
+        conv_header = self.create_conv_header()
+        self.application.add_handler(conv_header)
         self.application.add_handler(lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.echo_message))
         self.application.add_handler(lib.MessageHandler(lib.filters.COMMAND, lib.cmd.unknown_message))
-        # self.application.add_handler(lib.InlineQueryHandler(lib.cmd.inline_caps))
-        # self.application.add_handler(lib.CallbackQueryHandler(lib.cmd.handle_invalid_button, pattern=lib.InvalidCallbackData))
-        # self.application.add_handler(lib.CallbackQueryHandler(lib.cmd.list_button))
-        
     async def run(self) -> None:
         """
         Запускает бота.
@@ -116,5 +116,6 @@ class FitnessBot:
         )
         self.register_handles()
         await self.setup_bot()
+        # self.application.bot_data["fitness_bot"] = self
         await self.application.run_polling(allowed_updates=lib.Update.ALL_TYPES)
 
