@@ -12,7 +12,9 @@ from telegram import (
     InlineQueryResultArticle,
     InputTextMessageContent,
     ReplyKeyboardRemove,
-    ReplyKeyboardMarkup
+    ReplyKeyboardMarkup,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup
     )
 from telegram.ext import (
     ContextTypes,
@@ -20,6 +22,14 @@ from telegram.ext import (
 )
 
 Name_BOT_data = "UserProfile"
+
+def build_button_menu(buttons, n_cols,header_buttons=None,footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, [header_buttons])
+    if footer_buttons:
+        menu.append([footer_buttons])
+    return menu
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = context.user_data[Name_BOT_data] = UserProfile.load_foarm(update.effective_user.id)
@@ -43,10 +53,29 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     )
     try:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-    except Exception:
+    except Exception as ex:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Не удалось обработать команду")
+        print(f"Произошла ошибка в методе start_command с текстом : {ex} ")
 #region --- Методы диалога сбора информации пользователя ---
+def creat_markup_registration_menu():
+    button_list = [
+        InlineKeyboardButton("Отмена", callback_data="/cancel"),
+        InlineKeyboardButton("Пропустить", callback_data="/skip")
+    ]
+    reply_markup = InlineKeyboardMarkup(build_button_menu(button_list, n_cols=2))
+    return reply_markup
 
+async def button_handler_registration_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    print(f'Была нажата кнопка {query.data}')
+    if query.data == "/cancel":
+        await query.edit_message_text(text="Регистрация отменена.")
+        return ConversationHandler.END
+    if query.data == "/skip":
+        await query.edit_message_text(text="/skip")
+    
+    
 async def ask_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     try:
         text = update.message.text
@@ -70,10 +99,8 @@ async def ask_height(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             await update.message.reply_text("Ого, но небывает таких людей, либо бегом в книгу рекордов гиннеса!!!\n Давай попробуем снова, введите свой рост")
             return ASK_HEIGHT
         context.user_data[Name_BOT_data].height = height
-        # Список кнопок для ответа
-        reply_keyboard = [['Boy', 'Girl', '/cancel']]
         # Создаем простую клавиатуру для ответа
-        markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+        markup_key = creat_markup_registration_menu()
         await update.message.reply_text(f"Спасибо! Ваш рост {height} сохранён. ")
         await update.message.reply_text(
         (
@@ -99,8 +126,7 @@ async def ask_weight(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             await update.message.reply_text("Кажется ваши весы сломаны\n Давай попробуем снова, введите свой вес")
             return ASK_WEIGHT
         context.user_data[Name_BOT_data].weight = weight
-        reply_keyboard = [['/cancel', '/skip']]
-        markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+        markup_key = creat_markup_registration_menu()
         await update.message.reply_text(f"Спасибо! Ваш вес {weight} сохранён.")
         await update.message.reply_text(
             (
@@ -127,8 +153,7 @@ async def ask_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             await update.message.reply_text("Не брат, столько не живут. Укажите возраст от 1 до 99.")
             return ASK_AGE
         context.user_data[Name_BOT_data].age = age
-        reply_keyboard = [['/cancel', '/skip']]
-        markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+        markup_key = creat_markup_registration_menu()
         await update.message.reply_text(f"Спасибо! Ваш возраст {age} сохранён.\n")
         # Следующее сообщение с удалением клавиатуры `ReplyKeyboardRemove`
         await update.message.reply_text(
@@ -142,15 +167,13 @@ async def ask_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     except Exception as ex:
         print(f'Метод ask_age, произошла ошибка с текстом : {ex}')
 
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("Регистрация отменена.")
     return ConversationHandler.END
 async def register_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(text="Укажите свой возраст")
     # Следующее сообщение с удалением клавиатуры `ReplyKeyboardRemove`
-    reply_keyboard = [['/cancel', '/skip']]
-    markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+    markup_key = creat_markup_registration_menu()
     await update.message.reply_text(
         'Oтправь /skip, если стесняешься.',
         reply_markup=markup_key,

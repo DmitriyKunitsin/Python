@@ -49,15 +49,19 @@ class FitnessBot:
             ],
             states={
                 ASK_AGE: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_age), 
-                            lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_WEIGHT))],
+                            lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_WEIGHT)),
+                            lib.CallbackQueryHandler(lib.cmd.button_handler_registration_menu)],
                 ASK_WEIGHT: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_weight), 
-                                lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_HEIGHT))],
+                            lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_HEIGHT)),
+                            lib.CallbackQueryHandler(lib.cmd.button_handler_registration_menu)],
                 ASK_HEIGHT: [lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.ask_height),
-                                lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_GENDER))],
+                            lib.CommandHandler('skip', lib.cmd.make_skip_handler(ASK_GENDER)),
+                            lib.CallbackQueryHandler(lib.cmd.button_handler_registration_menu)],
                 ASK_GENDER: [lib.MessageHandler(lib.filters.Regex('^(Boy|Girl)$'), lib.cmd.ask_gender),
-                                lib.CommandHandler('skip', lib.cmd.make_skip_handler(lib.ConversationHandler.END))],
+                            lib.CommandHandler('skip', lib.cmd.make_skip_handler(lib.ConversationHandler.END)),
+                            lib.CallbackQueryHandler(lib.cmd.button_handler_registration_menu)],
             },
-            fallbacks=[lib.CommandHandler('Cancel', lib.cmd.cancel)],
+            fallbacks=[lib.CommandHandler('cancel', lib.cmd.cancel_command)],
         )
     
     def register_handles(self) -> None:
