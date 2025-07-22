@@ -34,30 +34,14 @@ class FitnessBot:
         а также настраивает меню чата.
         """
         commands = [
-            lib.BotCommand("start", "Запустить бота"),
             lib.BotCommand("help", "Помощь"),
-            lib.BotCommand("caps", "Капcлок"),
             lib.BotCommand("my", "Информация о себе"),
             lib.BotCommand("reg", "Регистрация")
         ]
         assert self.application is not None
         await self.application.bot.set_my_commands(commands)
         await self.application.bot.set_chat_menu_button(menu_button=lib.MenuButtonCommands())
-    def build_keyboard(self, current_list: lib.Optional[lib.List[int]] = None) -> lib.InlineKeyboardMarkup:
-        """
-        Построение клавиатуры с кнопками для интерфейса Telegram.
 
-        Args:
-            current_list (lib.Optional[lib.List[int]], optional): Список идентификаторов или состояний, которые могут влиять на отображение клавиатуры. По умолчанию None.
-
-        Returns:
-            lib.InlineKeyboardMarkup: Объект клавиатуры с кнопками для отправки в Telegram.
-        """
-        buttons = [
-            lib.InlineKeyboardButton("Кнопка 1", callback_data="btn1"),
-            lib.InlineKeyboardButton("Кнопка 2", callback_data="btn2"),
-        ]
-        return lib.InlineKeyboardMarkup.from_row(buttons)
     def create_conv_header(self):
         return lib.ConversationHandler(
             entry_points = [
@@ -92,7 +76,6 @@ class FitnessBot:
         
         conv_header = self.create_conv_header()
         self.application.add_handler(conv_header)
-        self.application.add_handler(lib.MessageHandler(lib.filters.TEXT & ~lib.filters.COMMAND, lib.cmd.echo_message))
         self.application.add_handler(lib.MessageHandler(lib.filters.COMMAND, lib.cmd.unknown_message))
     async def run(self) -> None:
         """
