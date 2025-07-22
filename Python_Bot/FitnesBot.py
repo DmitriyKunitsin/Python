@@ -76,7 +76,7 @@ class FitnessBot:
         
         conv_header = self.create_conv_header()
         self.application.add_handler(conv_header)
-        self.application.add_handler(lib.MessageHandler(lib.filters.COMMAND, lib.cmd.unknown_message))
+        self.application.add_handler(lib.MessageHandler(lib.filters.TEXT | lib.filters.COMMAND, lib.cmd.unknown_message))
     async def run(self) -> None:
         """
         Запускает бота.

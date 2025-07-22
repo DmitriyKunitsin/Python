@@ -23,6 +23,13 @@ Name_BOT_data = "UserProfile"
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = context.user_data[Name_BOT_data] = UserProfile.load_foarm(update.effective_user.id)
+    if user is None:
+        print(f'Пользователь {update.effective_user.username} не был найден в базе данных')
+        user = context.user_data[Name_BOT_data] = UserProfile.init_user(new_user= update.effective_user)
+        if user is None:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Ой, что-то пошло не так🤔. \nСообщите о возникшей проблеме разработчику 💕")
+            await help_command(update=update, context=context)
+            return
     db.add_or_update_user(user)
     message = (
         "Привет! Я твой бот-помощник в мире фитнеса.\n"
@@ -31,7 +38,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         "- Помогаю отслеживать прогресс и ставить цели\n"
         "- Могу напомнить о тренировке или воде\n"
         "- Дам советы по восстановлению и мотивации\n\n"
-        "Напиши команду или вопрос, чтобы начать!\n"
+        "Напиши команду или пройди регистрацию, чтобы начать!\n"
         "/help для справки"
     )
     try:
@@ -41,86 +48,99 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 #region --- Методы диалога сбора информации пользователя ---
 
 async def ask_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    text = update.message.text
-    context.user_data[Name_BOT_data].gender = text
-    db.add_or_update_user(context.user_data[Name_BOT_data])
-    await update.message.reply_text(f"Спасибо! Ваш пол сохранён. Регистрация окончена",
-                                    reply_markup=ReplyKeyboardRemove())
-    return ConversationHandler.END
+    try:
+        text = update.message.text
+        context.user_data[Name_BOT_data].gender = text
+        db.add_or_update_user(context.user_data[Name_BOT_data])
+        await update.message.reply_text(f"Спасибо! Ваш пол сохранён. Регистрация окончена",
+                                        reply_markup=ReplyKeyboardRemove())
+        await help_command(update=update, context=context)
+        return ConversationHandler.END
+    except Exception as ex:
+        print(f'Метод ask_gender, произошла ошибка с текстом : {ex}')
 
 async def ask_height(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    text = update.message.text
-    if not text.isdigit():
-        await update.message.reply_text("Bведите пожалуйста число\n Давай попробуем снова, введите свой рост")
-        return ASK_HEIGHT
-    height = float(text)
-    if height < 50 or height > 272:
-        await update.message.reply_text("Ого, но небывает таких людей, либо бегом в книгу рекордов гиннеса!!!\n Давай попробуем снова, введите свой рост")
-        return ASK_HEIGHT
-    context.user_data[Name_BOT_data].height = height
-    # Список кнопок для ответа
-    reply_keyboard = [['Boy', 'Girl', '/cancel']]
-    # Создаем простую клавиатуру для ответа
-    markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-    await update.message.reply_text(f"Спасибо! Ваш рост {height} сохранён. ")
-    await update.message.reply_text(
-    (
-        "Выберите ваш пол , пожалуйста \n" 
-        "Oтправь /cancel, если стесняешься." 
-    ),
-    reply_markup=markup_key,
-    )
-    return ASK_GENDER
+    try:
+        text = update.message.text
+        if not text.isdigit():
+            await update.message.reply_text("Bведите пожалуйста число\n Давай попробуем снова, введите свой рост")
+            return ASK_HEIGHT
+        height = float(text)
+        if height < 50 or height > 272:
+            await update.message.reply_text("Ого, но небывает таких людей, либо бегом в книгу рекордов гиннеса!!!\n Давай попробуем снова, введите свой рост")
+            return ASK_HEIGHT
+        context.user_data[Name_BOT_data].height = height
+        # Список кнопок для ответа
+        reply_keyboard = [['Boy', 'Girl', '/cancel']]
+        # Создаем простую клавиатуру для ответа
+        markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+        await update.message.reply_text(f"Спасибо! Ваш рост {height} сохранён. ")
+        await update.message.reply_text(
+        (
+            "Выберите ваш пол , пожалуйста \n" 
+            "Oтправь /cancel, если стесняешься." 
+        ),
+        reply_markup=markup_key,
+        )
+        return ASK_GENDER
+    except Exception as ex:
+        print(f'Метод ask_height, произошла ошибка с текстом : {ex}')
 """
 Запрос веса
 """
 async def ask_weight(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    text = update.message.text
-    if not text.isdigit():
-        await update.message.reply_text("Bведите пожалуйста число\n Давай попробуем снова, введите свой вес")
-        return ASK_WEIGHT
-    weight = float(text)
-    if weight < 2 or weight > 635:
-        await update.message.reply_text("Кажется ваши весы сломаны\n Давай попробуем снова, введите свой вес")
-        return ASK_WEIGHT
-    context.user_data[Name_BOT_data].weight = weight
-    reply_keyboard = [['/cancel', '/skip']]
-    markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-    await update.message.reply_text(f"Спасибо! Ваш вес {weight} сохранён.")
-    await update.message.reply_text(
-        (
-            "Введите ваш рост , пожалуйста \n" 
-            "Oтправь /skip, если стесняешься." 
-        ),
-        reply_markup=markup_key,
-    )
-    return ASK_HEIGHT
+    try:
+        text = update.message.text
+        if not text.isdigit():
+            await update.message.reply_text("Bведите пожалуйста число\n Давай попробуем снова, введите свой вес")
+            return ASK_WEIGHT
+        weight = float(text)
+        if weight < 2 or weight > 635:
+            await update.message.reply_text("Кажется ваши весы сломаны\n Давай попробуем снова, введите свой вес")
+            return ASK_WEIGHT
+        context.user_data[Name_BOT_data].weight = weight
+        reply_keyboard = [['/cancel', '/skip']]
+        markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+        await update.message.reply_text(f"Спасибо! Ваш вес {weight} сохранён.")
+        await update.message.reply_text(
+            (
+                "Введите ваш рост , пожалуйста \n" 
+                "Oтправь /skip, если стесняешься." 
+            ),
+            reply_markup=markup_key,
+        )
+        return ASK_HEIGHT
+    except Exception as ex:
+        print(f'Метод ask_weight, произошла ошибка с текстом : {ex}')
 
 """
 Запрос возраста
 """
 async def ask_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    text = update.message.text
-    if not text.isdigit():
-        await update.message.reply_text("Столько не живут, введите пожалуйста число")
-        return ASK_AGE
-    age = int(text)
-    if age < 0 or age > 100:
-        await update.message.reply_text("Не брат, столько не живут. Укажите возраст от 1 до 99.")
-        return ASK_AGE
-    context.user_data[Name_BOT_data].age = age
-    reply_keyboard = [['/cancel', '/skip']]
-    markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-    await update.message.reply_text(f"Спасибо! Ваш возраст {age} сохранён.\n")
-    # Следующее сообщение с удалением клавиатуры `ReplyKeyboardRemove`
-    await update.message.reply_text(
-        (
-            "Введите ваш вес , пожалуйста \n" 
-            "Oтправь /skip, если стесняешься." 
-        ),
-        reply_markup=markup_key,
-    )
-    return ASK_WEIGHT
+    try:
+        text = update.message.text
+        if not text.isdigit():
+            await update.message.reply_text("Столько не живут, введите пожалуйста число")
+            return ASK_AGE
+        age = int(text)
+        if age < 0 or age > 100:
+            await update.message.reply_text("Не брат, столько не живут. Укажите возраст от 1 до 99.")
+            return ASK_AGE
+        context.user_data[Name_BOT_data].age = age
+        reply_keyboard = [['/cancel', '/skip']]
+        markup_key = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+        await update.message.reply_text(f"Спасибо! Ваш возраст {age} сохранён.\n")
+        # Следующее сообщение с удалением клавиатуры `ReplyKeyboardRemove`
+        await update.message.reply_text(
+            (
+                "Введите ваш вес , пожалуйста \n" 
+                "Oтправь /skip, если стесняешься." 
+            ),
+            reply_markup=markup_key
+        )
+        return ASK_WEIGHT
+    except Exception as ex:
+        print(f'Метод ask_age, произошла ошибка с текстом : {ex}')
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -163,13 +183,13 @@ async def my_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             f"Last Name: {user_profile.last_name}\n"
             f"Full Name: {user_profile.full_name}\n"
             f"premium : {user_profile.get_is_premium()}\n"
-            f"Рост : {user_profile.height}\n"
-            f"Вес : {user_profile.weight}\n"
-            f"ИМТ : {user_profile.calc_iwm()} ({user_profile.get_stadia_iwm()})\n"
-            f"Пол : {user_profile.gender}\n"
-            f"Возраст : {user_profile.age}\n"
-            f"почта : {user_profile.email}\n"
-            f"дата регистрации : {user_profile.register_date}\n"
+            f"Рост : {user_profile.height or "неизвестно"}\n"
+            f"Вес : {user_profile.weight or "неизвестно"}\n"
+            f"ИМТ : {user_profile.calc_iwm()} ({user_profile.get_stadia_iwm() or "неизвестно"})\n"
+            f"Пол : {user_profile.gender or "неизвестно"}\n"
+            f"Возраст : {user_profile.age or "неизвестно"}\n"
+            f"почта : {user_profile.email or "неизвестно"}\n"
+            f"дата регистрации : {user_profile.register_date or "неизвестно"}\n"
         )
         await context.bot.send_message(chat_id=update.effective_chat.id, text=answer)
     except ValueError as ex:
@@ -186,5 +206,5 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await context.bot.send_message(chat_id=update.effective_chat.id, text=answer)
         
 async def unknown_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Я не знаю, что делает данная команда")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Я не знаю, что делает в данной ситуации, попробуй снова")
     await help_command(update=update, context=context)

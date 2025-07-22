@@ -112,7 +112,7 @@ if is_corect:
         if connect is None or cursor is None:
             print("Ошибка: база данных отсутствует")
         else:
-            sql = f'''
+            sql = f'''\
             INSERT INTO {NAME_CONST_TABLE_USERS} (
                 user_id,
                 username,
