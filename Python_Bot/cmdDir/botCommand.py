@@ -7,6 +7,8 @@ from configs.userData import ASK_GENDER
 from configs.userData import ASK_CONST_STRING_END
 from configs.userData import get_state_text
 
+NAME_CONST_CURRENT_STATE_DIALOG = "current_state_dialog"
+
 from telegram import (
     Update,
     InlineQueryResultArticle,
@@ -73,7 +75,14 @@ async def button_handler_registration_menu(update: Update, context: ContextTypes
         await query.edit_message_text(text="Регистрация отменена.")
         return ConversationHandler.END
     if query.data == "/skip":
-        await query.edit_message_text(text="/skip")
+        current_state = context.user_data[NAME_CONST_CURRENT_STATE_DIALOG]
+        handler = make_skip_handler(current_state)
+        if current_state + 1 < 3:
+            current_state += 1
+        else:
+            current_state = ConversationHandler.END
+        context.user_data[NAME_CONST_CURRENT_STATE_DIALOG]  = current_state  
+        return await handler(update, context)
     
     
 async def ask_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -84,19 +93,25 @@ async def ask_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text(f"Спасибо! Ваш пол сохранён. Регистрация окончена",
                                         reply_markup=ReplyKeyboardRemove())
         await help_command(update=update, context=context)
+        context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ConversationHandler.END
         return ConversationHandler.END
     except Exception as ex:
         print(f'Метод ask_gender, произошла ошибка с текстом : {ex}')
+        return ConversationHandler.END
 
 async def ask_height(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     try:
         text = update.message.text
         if not text.isdigit():
-            await update.message.reply_text("Bведите пожалуйста число\n Давай попробуем снова, введите свой рост")
+            markup = creat_markup_registration_menu()
+            await update.message.reply_text("Bведите пожалуйста число\n Давай попробуем снова, введите свой рост", reply_markup=markup)
+            context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_GENDER
             return ASK_HEIGHT
         height = float(text)
         if height < 50 or height > 272:
-            await update.message.reply_text("Ого, но небывает таких людей, либо бегом в книгу рекордов гиннеса!!!\n Давай попробуем снова, введите свой рост")
+            markup = creat_markup_registration_menu()
+            await update.message.reply_text("Ого, но небывает таких людей, либо бегом в книгу рекордов гиннеса!!!\n Давай попробуем снова, введите свой рост", reply_markup=markup)
+            context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_GENDER
             return ASK_HEIGHT
         context.user_data[Name_BOT_data].height = height
         # Создаем простую клавиатуру для ответа
@@ -109,9 +124,11 @@ async def ask_height(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         ),
         reply_markup=markup_key,
         )
+        context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ConversationHandler.END
         return ASK_GENDER
     except Exception as ex:
         print(f'Метод ask_height, произошла ошибка с текстом : {ex}')
+        return ConversationHandler.END
 """
 Запрос веса
 """
@@ -119,11 +136,15 @@ async def ask_weight(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     try:
         text = update.message.text
         if not text.isdigit():
-            await update.message.reply_text("Bведите пожалуйста число\n Давай попробуем снова, введите свой вес")
+            markup = creat_markup_registration_menu()
+            await update.message.reply_text("Bведите пожалуйста число\n Давай попробуем снова, введите свой вес", reply_markup=markup)
+            context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_HEIGHT
             return ASK_WEIGHT
         weight = float(text)
         if weight < 2 or weight > 635:
-            await update.message.reply_text("Кажется ваши весы сломаны\n Давай попробуем снова, введите свой вес")
+            markup = creat_markup_registration_menu()
+            await update.message.reply_text("Кажется ваши весы сломаны\n Давай попробуем снова, введите свой вес", reply_markup=markup)
+            context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_HEIGHT
             return ASK_WEIGHT
         context.user_data[Name_BOT_data].weight = weight
         markup_key = creat_markup_registration_menu()
@@ -135,9 +156,11 @@ async def ask_weight(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             ),
             reply_markup=markup_key,
         )
+        context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_GENDER
         return ASK_HEIGHT
     except Exception as ex:
         print(f'Метод ask_weight, произошла ошибка с текстом : {ex}')
+        return ConversationHandler.END
 
 """
 Запрос возраста
@@ -146,11 +169,15 @@ async def ask_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     try:
         text = update.message.text
         if not text.isdigit():
-            await update.message.reply_text("Столько не живут, введите пожалуйста число")
+            markup = creat_markup_registration_menu()
+            await update.message.reply_text("Столько не живут, введите пожалуйста число", reply_markup=markup)
+            context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_WEIGHT
             return ASK_AGE
         age = int(text)
         if age < 0 or age > 100:
-            await update.message.reply_text("Не брат, столько не живут. Укажите возраст от 1 до 99.")
+            markup = creat_markup_registration_menu()
+            await update.message.reply_text("Не брат, столько не живут. Укажите возраст от 1 до 99.", reply_markup=markup)
+            context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_WEIGHT
             return ASK_AGE
         context.user_data[Name_BOT_data].age = age
         markup_key = creat_markup_registration_menu()
@@ -163,9 +190,11 @@ async def ask_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             ),
             reply_markup=markup_key
         )
+        context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_HEIGHT
         return ASK_WEIGHT
     except Exception as ex:
         print(f'Метод ask_age, произошла ошибка с текстом : {ex}')
+        return ConversationHandler.END
 
 async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("Регистрация отменена.")
@@ -178,16 +207,32 @@ async def register_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         'Oтправь /skip, если стесняешься.',
         reply_markup=markup_key,
     )
+    context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_AGE
     return ASK_AGE
 
 def make_skip_handler(next_step):
     async def skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        text_end = "Регистрация окончена. \nДля получения информации о себе, введите комманду /my"
+        text_next = f"Ладно, перейдем на следующий шаг, укажите пожалуйста {get_state_text(next_step)}"
+        markup = creat_markup_registration_menu()
+
         if get_state_text(next_step) == ASK_CONST_STRING_END:
-            await update.message.reply_text(f"Регистрация окончена. \nДля получения информации о себе, введите комманду /my")
+            if update.message:
+                await update.message.reply_text(text_end)
+            elif update.callback_query:
+                await update.callback_query.message.reply_text(text_end)
+            else:
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=text_end)
         else:
-            await update.message.reply_text(f"Ладно, перейдем на следующий шаг , укажите пожалуйста {get_state_text(next_step)}")
+            if update.message:
+                await update.message.reply_text(text_next, reply_markup=markup)
+            elif update.callback_query:
+                await update.callback_query.message.reply_text(text_next, reply_markup=markup)
+            else:
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=text_next, reply_markup=markup)
         return next_step
     return skip
+
 
 #endregion
 async def my_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
