@@ -9,6 +9,9 @@ db_path = r"Python_Bot\\db\\bot_database.db"
 is_corect = False
 is_create_db = False
 folder = os.path.dirname(db_path)
+"""
+! При необходимости удалить базу данных поставил True
+"""
 if False:
     print(f"Удаляю файл базы {db_path}")
     os.remove(db_path)
@@ -23,9 +26,6 @@ else:
     is_corect = True
     print("Присутствует база данных, база данных заново не создавалась")
 if is_corect:
-    """
-    ! При необходимости удалить базу данных поставил True
-    """
     if is_create_db:
         cursor_one = connect_one.cursor()
         # Таблица с пользователем   

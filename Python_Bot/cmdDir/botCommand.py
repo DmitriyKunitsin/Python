@@ -59,14 +59,24 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Не удалось обработать команду")
         print(f"Произошла ошибка в методе start_command с текстом : {ex} ")
 #region --- Методы диалога сбора информации пользователя ---
-def creat_markup_registration_menu():
+def creat_markup_registration_menu(is_gender : int | None = None):
     button_list = [
         InlineKeyboardButton("Отмена", callback_data="/cancel"),
         InlineKeyboardButton("Пропустить", callback_data="/skip")
     ]
+    button_list_is_gender = [
+        InlineKeyboardButton("Отмена", callback_data="/cancel"),
+        InlineKeyboardButton("Пропустить", callback_data="/skip"),
+        InlineKeyboardButton("Мужчина", callback_data="Boy"),
+        InlineKeyboardButton("Женщина", callback_data="Girl"),
+    ]
+    if is_gender == 'Пол':
+        button_list = button_list_is_gender
     reply_markup = InlineKeyboardMarkup(build_button_menu(button_list, n_cols=2))
     return reply_markup
-
+def add_gender_to_db(gender : str, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data[Name_BOT_data].gender = gender
+    db.add_or_update_user(context.user_data[Name_BOT_data])
 async def button_handler_registration_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
@@ -77,23 +87,35 @@ async def button_handler_registration_menu(update: Update, context: ContextTypes
     if query.data == "/skip":
         current_state = context.user_data[NAME_CONST_CURRENT_STATE_DIALOG]
         handler = make_skip_handler(current_state)
-        if current_state + 1 < 3:
+        if current_state + 1 <= 3:
             current_state += 1
         else:
             current_state = ConversationHandler.END
         context.user_data[NAME_CONST_CURRENT_STATE_DIALOG]  = current_state  
         return await handler(update, context)
-    
-    
+    if query.data == "Boy":
+        add_gender_to_db(query.data, context=context)
+        await registration_done(update,context, "Сохранен мужской пол.")
+        await help_command(update, context)
+        return ConversationHandler.END
+    if query.data == "Girl":
+        add_gender_to_db(query.data, context=context)
+        await registration_done(update,context, "Сохранен женский пол.")
+        await help_command(update, context)
+        return ConversationHandler.END
+
+async def registration_done(update, context, text, reply_markup=None):
+    text = f"{text}\nРегистрация окончена"
+    await send_reply(update, context, text, reply_markup=reply_markup)
+
 async def ask_gender(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     try:
         text = update.message.text
-        context.user_data[Name_BOT_data].gender = text
-        db.add_or_update_user(context.user_data[Name_BOT_data])
+        add_gender_to_db(text, context=context)
         await update.message.reply_text(f"Спасибо! Ваш пол сохранён. Регистрация окончена",
                                         reply_markup=ReplyKeyboardRemove())
         await help_command(update=update, context=context)
-        context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ConversationHandler.END
+        #context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ConversationHandler.END
         return ConversationHandler.END
     except Exception as ex:
         print(f'Метод ask_gender, произошла ошибка с текстом : {ex}')
@@ -115,7 +137,7 @@ async def ask_height(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             return ASK_HEIGHT
         context.user_data[Name_BOT_data].height = height
         # Создаем простую клавиатуру для ответа
-        markup_key = creat_markup_registration_menu()
+        markup_key = creat_markup_registration_menu(get_state_text(ASK_GENDER))
         await update.message.reply_text(f"Спасибо! Ваш рост {height} сохранён. ")
         await update.message.reply_text(
         (
@@ -124,7 +146,7 @@ async def ask_height(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         ),
         reply_markup=markup_key,
         )
-        context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ConversationHandler.END
+        context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_GENDER
         return ASK_GENDER
     except Exception as ex:
         print(f'Метод ask_height, произошла ошибка с текстом : {ex}')
@@ -202,37 +224,34 @@ async def cancel_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def register_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(text="Укажите свой возраст")
     # Следующее сообщение с удалением клавиатуры `ReplyKeyboardRemove`
+    context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_WEIGHT
     markup_key = creat_markup_registration_menu()
     await update.message.reply_text(
         'Oтправь /skip, если стесняешься.',
         reply_markup=markup_key,
     )
-    context.user_data[NAME_CONST_CURRENT_STATE_DIALOG] = ASK_AGE
     return ASK_AGE
 
 def make_skip_handler(next_step):
     async def skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         text_end = "Регистрация окончена. \nДля получения информации о себе, введите комманду /my"
         text_next = f"Ладно, перейдем на следующий шаг, укажите пожалуйста {get_state_text(next_step)}"
-        markup = creat_markup_registration_menu()
+        markup = creat_markup_registration_menu(get_state_text(next_step))
 
         if get_state_text(next_step) == ASK_CONST_STRING_END:
-            if update.message:
-                await update.message.reply_text(text_end)
-            elif update.callback_query:
-                await update.callback_query.message.reply_text(text_end)
-            else:
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=text_end)
+            await send_reply(update=update, context=context, text=text_end)
         else:
-            if update.message:
-                await update.message.reply_text(text_next, reply_markup=markup)
-            elif update.callback_query:
-                await update.callback_query.message.reply_text(text_next, reply_markup=markup)
-            else:
-                await context.bot.send_message(chat_id=update.effective_chat.id, text=text_next, reply_markup=markup)
+            await send_reply(update=update, context=context, text=text_next, reply_markup=markup)
         return next_step
     return skip
 
+async def send_reply(update, context, text, reply_markup=None):
+    if update.message:
+        await update.message.reply_text(text, reply_markup=reply_markup)
+    elif update.callback_query:
+        await update.callback_query.message.reply_text(text, reply_markup=reply_markup)
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=text, reply_markup=reply_markup)
 
 #endregion
 async def my_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
