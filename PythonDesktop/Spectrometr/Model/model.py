@@ -16,8 +16,8 @@ class DataMode(QObject):
 
     def read_data(self, value_sleep):
         print('Запрос на получение данных')
-        self.serial_port.start_reading(value_sleep) # Запуск чтения данных
-        
+        #self.serial_port.start_reading(value_sleep) # Запуск чтения данных
+        self.serial_port.start_simulating_reading(value_sleep)
     def list_devices(self):
         self.serial_port.list_ports()
         self.serial_port.print_ports()

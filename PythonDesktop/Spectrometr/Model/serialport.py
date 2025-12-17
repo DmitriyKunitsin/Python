@@ -11,6 +11,9 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 from Model.SKLP import SKLP_Serial, SKLP_GGLP_Spectr
 
+# Random для симуляции
+import random
+
 class SerialPort(QObject):
     data_received = pyqtSignal(list)
 
@@ -22,6 +25,53 @@ class SerialPort(QObject):
         self.running = False
         self.SKLP = None
         self.serial_time = None
+    def generate_cesium_spectrum(self, size=8192):
+        """
+        Генерирует "красивый" спектр цезия с характерными линиями D1 и D2 без шума.
+        
+        :param size: Размер массива данных (по умолчанию 8192).
+        :return: Байты, имитирующие спектр (для парсинга в uint16).
+        """
+        # Начинаем с нулевого фона (без шума)
+        spectrum = np.zeros(size, dtype=float)
+        
+        # Характерные длины волн цезия (D1: ~894.6 нм, D2: ~852.1 нм)
+        # Предполагаем, что индексы соответствуют длинам волн (например, от 800 нм до 900 нм)
+        # Масштабируем: пусть индекс 0 = 800 нм, индекс size-1 = 900 нм
+        wavelength_range = np.linspace(850, 900, size)
+        
+        # Позиции пиков (примерные индексы для D1 и D2)
+        d1_index = np.argmin(np.abs(wavelength_range - 854.6))
+        d2_index = np.argmin(np.abs(wavelength_range - 852.1))
+        
+        # Добавляем гауссовы пики с фиксированной амплитудой и шириной для "красоты"
+        def gaussian_peak(center, amplitude, sigma):
+            return amplitude * np.exp(-0.5 * ((np.arange(size) - center) / sigma)**2)
+        
+        # Фиксированные параметры для симметричного "красивого" спектра
+        amp_d1 = 200  # Амплитуда D1
+        amp_d2 = 140  # Амплитуда D2 (немного ниже для реализма)
+        sigma = 90    # Ширина пика (фиксированная для гладкости)
+        
+        spectrum += gaussian_peak(d1_index, amp_d1, sigma)
+        spectrum += gaussian_peak(d2_index, amp_d2, sigma)
+        
+        # Ограничиваем значения в диапазоне 0-255 и конвертируем в uint8 байты
+        spectrum = np.clip(spectrum, 0, 255).astype(np.uint8)
+    
+        return spectrum.tobytes()  # Возвращаем байты для парсинга
+    def start_simulating_reading(self, value_sleep):
+        '''
+        Возвращает рандомный спектр
+        
+        :param self: Description
+        :param value_sleep: Время ожидания до след спектра
+        '''
+        try:
+            numbers = self.parse_data(self.generate_cesium_spectrum())
+            self.data_received.emit(list(numbers))
+        except ValueError as e:
+                print(e)  
     def start_reading(self, value_sleep):
         ''' Запускает команду на чтения данных с микроконтроллера
 
