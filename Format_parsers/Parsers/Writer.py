@@ -23,7 +23,8 @@ class FileSplitWriter:
         self._current_file.write("timestamp,payload_length\n")  # заголовок CSV
         self._part_number += 1
         print(f"Создан новый файл: {path}")
-
+    def format_payload(payload:bytes, split_byte: Optional[int] = None) -> str:
+        return ""
     def write_record(self, timestamp: int, payload: bytes, source_bytes_read: int):
         """
         Записывает запись в текущий файл. Если количество прочитанных байт исходного файла
