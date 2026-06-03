@@ -9,3 +9,4 @@ CLAUDE.md
 __pycache__/
 AI/
 Xilinx/
+*.html
