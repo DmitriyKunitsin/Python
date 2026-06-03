@@ -1,6 +1,7 @@
 import os
 import struct
 from typing import List, Tuple, Optional
+import sys
 
 FILE_FORMAT = ".dat"
 
@@ -69,16 +70,24 @@ class FormatDatParser:
         hex_str = ' '.join(f'{b:02x}' for b in data)
         print(f"Первые {len(data)} байт файла:\n{hex_str}")
     # packet = \x40 [длина ответа](2 байта) \x64 [ответ](n байт) [CRC16](2 байта) [Маркер конца посылки](1 байт) [TimeStamp] (8 байт) 1 + 2 + N + 2 + 1 + 8 = 14 + N
-    def read_file(self) -> List[Tuple[int, bytes]]:
+    def read_file(self, show_progress_bar : bool = False) -> List[Tuple[int, bytes]]:
         records = []
         print(f'Читается файл : {self._path_file}')
+        total_size = os.path.getsize(self.path_file) # Для прогресс бара
+        sys.stderr.write('Процесс : 0% - чтение начато\n')
         with open(self._path_file, 'rb') as file:
             while True:
                 try:
+                    if show_progress_bar:
+                        current_pos = file.tell()
+                        percent = (current_pos/total_size) * 100 if total_size else 100
+                        sys.stderr.write(f'Процесс : {percent:.1f}% : ({current_pos}/{total_size}) \n')
+                        sys.stderr.flush()
                     # 1. Ищем стартовый маркер 0x40
                     while True:
                         byte = file.read(1)
                         if not byte:
+                            sys.stderr.write('Процесс : 100% - чтение завершено. \n')
                             return records  # EOF
                         if byte[0] == self.MARKER_x40:
                             break

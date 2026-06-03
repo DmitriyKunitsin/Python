@@ -4,9 +4,9 @@ import datetime
 def main():
     parser = parser_dat.FormatDatParser(
         "Парсер формата .dat",
-        r'Files_to_read\Solkinskoe_70BIS_2109\bytes_2026-05-15_22-31-03-2330.dat'
+        r'Files_to_read\Solkinskoe_70BIS_2109\bytes_2026-05-16_15-57-30-8591.dat'
     )
-    records = parser.read_file()
+    records = parser.read_file(True)
     print(f'Успешно записано записей : {len(records)}')
     temp_cnt_data = 0
     cnt = 0
