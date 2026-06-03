@@ -4,6 +4,8 @@ from typing import List, Tuple, Optional
 import sys
 
 FILE_FORMAT = ".dat"
+SIZE_MEGABYTE = 1
+STEP_SIZE = SIZE_MEGABYTE * 1024 * 1024 # Порог срабатывания для начала создания нового файла
 
 class FormatDatParser:
     """Парсер бинарных файлов, записанных методом SaveResponseData."""
@@ -21,9 +23,14 @@ class FormatDatParser:
         self._file_format = FILE_FORMAT
         self._title = ""
         self._path_file = ""
-
+        self._dir_path = os.path.dirname(path_file)
+        
         self.title = title
         self.path_file = path_file
+        
+    @property
+    def dir_path(self) -> str:
+        return self._dir_path
 
     @property
     def file_format(self) -> str:
@@ -61,7 +68,28 @@ class FormatDatParser:
             raise FileNotFoundError(f"Файл не найден: {self._path_file}")
         if not os.access(self._path_file, os.R_OK):
             raise PermissionError(f"Нет прав на чтение: {self._path_file}")
-    
+    def save_data_file_write(self, file_name : str ,data : str, append : bool = False, is_first : bool = False):
+        """
+        Сохраняет данные в новый файл, в зависимости от мода, добавляет их
+        Args:
+            file_name (str): _description_
+            data (str): _description_
+            append (bool, optional): _description_. Defaults to False.
+        """
+        mode = 'a' if append else 'w' # Если append == true, то режим "а" и добавляем в конец, иначе пересоздаём файл
+        with open(self._dir_path / self._path_file+'|'+file_name, mode) as file:
+            file.write(data)
+    @staticmethod
+    def get_format_size(size_bytes: int) -> str:
+        """Возвращает размер в читаемом виде: КБ (< 1 МБ), МБ (< 1 ГБ) или ГБ."""
+        if size_bytes < 1024:
+            return f"{size_bytes} Б"
+        elif size_bytes < 1024 * 1024:
+            return f"{size_bytes / 1024:.1f} КБ"
+        elif size_bytes < 1024 * 1024 * 1024:
+            return f"{size_bytes / (1024 * 1024):.1f} МБ"
+        else:
+            return f"{size_bytes / (1024 * 1024 * 1024):.2f} ГБ"
     def show_file_header(self, num_bytes: int = 64):
         """Выводит первые num_bytes файла в hex для анализа."""
         self._ensure_file_ready()
@@ -74,15 +102,23 @@ class FormatDatParser:
         records = []
         print(f'Читается файл : {self._path_file}')
         total_size = os.path.getsize(self.path_file) # Для прогресс бара
-        sys.stderr.write('Процесс : 0% - чтение начато\n')
+        next_file_threshold = STEP_SIZE
+        sys.stderr.write(f'Процесс : 0% - чтение начато. Установлен рубеж : {FormatDatParser.get_format_size(next_file_threshold)}\n')
+        step_percent, step_file = 5 , 25 # шаги для разделния и проценты
         with open(self._path_file, 'rb') as file:
             while True:
                 try:
                     if show_progress_bar:
                         current_pos = file.tell()
                         percent = (current_pos/total_size) * 100 if total_size else 100
-                        sys.stderr.write(f'Процесс : {percent:.1f}% : ({current_pos}/{total_size}) \n')
-                        sys.stderr.flush()
+                        if percent >= step_percent: # Вывод процента процесса
+                            step_percent += 5
+                            sys.stderr.write(f'Процесс : {percent:.1f}% : ({current_pos}/{total_size} байт) {FormatDatParser.get_format_size(total_size)} \n')
+                            sys.stderr.flush()
+                        if current_pos >= next_file_threshold : # переход записи в след файл
+                            print(f'Достигнут рубеж {FormatDatParser.get_format_size(next_file_threshold)}.')
+                            next_file_threshold += STEP_SIZE
+
                     # 1. Ищем стартовый маркер 0x40
                     while True:
                         byte = file.read(1)

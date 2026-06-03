@@ -4,7 +4,7 @@ import datetime
 def main():
     parser = parser_dat.FormatDatParser(
         "Парсер формата .dat",
-        r'Files_to_read\Solkinskoe_70BIS_2109\bytes_2026-05-16_15-57-30-8591.dat'
+        r'Files_to_read\Solkinskoe_70BIS_2109\bytes_2026-05-15_22-47-09-1028.dat'
     )
     records = parser.read_file(True)
     print(f'Успешно записано записей : {len(records)}')
@@ -17,7 +17,7 @@ def main():
             dt = datetime.datetime(1,1,1) + datetime.timedelta(microseconds=item_ts/10)
         except:
             continue
-        print(f'{cnt})TimeStamp: {item_ts} , Size : {len(item_data)} bytes, Sum({temp_cnt_data}) , Data : {dt}')
+        #print(f'{cnt})TimeStamp: {item_ts} , Size : {len(item_data)} bytes, Sum({temp_cnt_data}) , Data : {dt}')
         if cnt > 15:
             break
     print(f'Всего байт в файле : {parser.file_size()}')
