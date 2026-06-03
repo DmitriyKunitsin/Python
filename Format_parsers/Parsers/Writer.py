@@ -1,4 +1,5 @@
 import os
+import json
 
 class FileSplitWriter:
     """Потоковый писатель, разбивающий вывод на файлы по достижению лимита байт исходного файла."""
@@ -34,7 +35,13 @@ class FileSplitWriter:
             while self._next_threshold <= source_bytes_read:
                 self._next_threshold += self.bytes_per_file
 
-        line = f"{timestamp},{len(payload)}\n"
+        # преобразуем байты в строку шестнадцатеричных значений через запятую
+        data_str = ','.join(f'{b:02x}' for b in payload)  # например "a5,00,ff"
+        line = json.dumps({
+            "timestamp": timestamp,
+            "payload_length": len(payload),
+            "data": data_str
+        }) + '\n'
         self._current_file.write(line)
         self._current_file.flush()
         self._count_record += 1

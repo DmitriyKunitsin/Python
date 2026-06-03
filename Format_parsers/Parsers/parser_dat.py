@@ -88,7 +88,6 @@ class FormatDatParser:
             data = f.read(num_bytes)
         hex_str = ' '.join(f'{b:02x}' for b in data)
         print(f"Первые {len(data)} байт файла:\n{hex_str}")
-    # packet = \x40 [длина ответа](2 байта) \x64 [ответ](n байт) [CRC16](2 байта) [Маркер конца посылки](1 байт) [TimeStamp] (8 байт) 1 + 2 + N + 2 + 1 + 8 = 14 + N
     def read_file(
     self,
     show_progress_bar: bool = False,
