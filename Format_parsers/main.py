@@ -15,11 +15,12 @@ def main():
     writer = FileSplitWriter(
         base_dir=os.path.dirname(input_file),
         base_name="output",
-        bytes_per_file=300 * 1024 * 1024
+        bytes_per_file=300 * 1024 * 1024,
+        ext= "txt"
     )
     
     records = parser.read_file(show_progress_bar= True, writer=writer)
-    print(f'Успешно записано записей : {len(records)}')
+    print(f'Успешно записано записей : {len(records)}, В файл : {writer.get_count_record()}')
     temp_cnt_data = 0
     cnt = 0
     for item_ts, item_data in records:

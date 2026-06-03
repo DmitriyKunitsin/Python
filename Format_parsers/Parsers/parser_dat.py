@@ -7,6 +7,7 @@ from Parsers.Writer import FileSplitWriter
 FILE_FORMAT = ".dat"
 SIZE_MEGABYTE = 1
 STEP_SIZE = SIZE_MEGABYTE * 1024 * 1024 # Порог срабатывания для начала создания нового файла
+STEP_PERCENT = 25
 
 class FormatDatParser:
     """Парсер бинарных файлов, записанных методом SaveResponseData."""
@@ -97,14 +98,14 @@ class FormatDatParser:
         Читает все записи. Если writer передан, записи передаются в него немедленно,
         и метод возвращает пустой список (или количество записей). Иначе возвращает список.
         """
-        records = [] if writer is None else None  # если writer, список не нужен
+        records = [] #if writer is None else None  # если writer, список не нужен
         print(f'Читается файл : {self._path_file}')
         total_size = os.path.getsize(self._path_file)
 
         if show_progress_bar:
             sys.stderr.write(f'Процесс : 0% - чтение начато. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
 
-        step_percent = 10
+        step_percent = 0
         with open(self._path_file, 'rb') as file:
             while True:
                 try:
@@ -116,7 +117,7 @@ class FormatDatParser:
                                 sys.stderr.write('Процесс : 100% - чтение завершено. EOF\n')
                             if writer:
                                 writer.close()
-                            return [] if writer else records
+                            return records
                         if byte[0] == self.MARKER_x40:
                             break
 
@@ -151,12 +152,10 @@ class FormatDatParser:
                         continue
                     timestamp = struct.unpack('<q', ts_bytes)[0]
 
-                    # --- Потоковая обработка ---
                     current_source_pos = file.tell()  # позиция после прочитанной записи
                     if writer:
                         writer.write_record(timestamp, payload, current_source_pos)
-                    else:
-                        records.append((timestamp, payload))
+                    records.append((timestamp, payload))
 
                     # Прогресс-бар
                     if show_progress_bar:
@@ -167,8 +166,8 @@ class FormatDatParser:
                                 f'({self.get_format_size(current_source_pos)}/'
                                 f'{self.get_format_size(total_size)})\n'
                             )
-                            step_percent += 5
-
+                            step_percent += STEP_PERCENT
                 except (IndexError, struct.error):
                     continue
+                
         return records

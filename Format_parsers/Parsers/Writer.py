@@ -2,7 +2,6 @@ import os
 
 class FileSplitWriter:
     """Потоковый писатель, разбивающий вывод на файлы по достижению лимита байт исходного файла."""
-
     def __init__(self, base_dir: str, base_name: str, bytes_per_file: int, ext: str = "csv"):
         self.base_dir = base_dir
         self.base_name = base_name
@@ -11,6 +10,7 @@ class FileSplitWriter:
         self._current_file = None
         self._part_number = 1
         self._next_threshold = bytes_per_file
+        self._count_record = 0        
 
     def _open_new_file(self):
         if self._current_file:
@@ -37,7 +37,9 @@ class FileSplitWriter:
         line = f"{timestamp},{len(payload)}\n"
         self._current_file.write(line)
         self._current_file.flush()
-
+        self._count_record += 1
+    def get_count_record(self):
+        return self._count_record
     def close(self):
         if self._current_file:
             self._current_file.close()
