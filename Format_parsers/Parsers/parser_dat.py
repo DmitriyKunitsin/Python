@@ -2,6 +2,7 @@ import os
 import struct
 from typing import List, Tuple, Optional
 import sys
+from Parsers.Writer import FileSplitWriter
 
 FILE_FORMAT = ".dat"
 SIZE_MEGABYTE = 1
@@ -68,17 +69,6 @@ class FormatDatParser:
             raise FileNotFoundError(f"Файл не найден: {self._path_file}")
         if not os.access(self._path_file, os.R_OK):
             raise PermissionError(f"Нет прав на чтение: {self._path_file}")
-    def save_data_file_write(self, file_name : str ,data : str, append : bool = False, is_first : bool = False):
-        """
-        Сохраняет данные в новый файл, в зависимости от мода, добавляет их
-        Args:
-            file_name (str): _description_
-            data (str): _description_
-            append (bool, optional): _description_. Defaults to False.
-        """
-        mode = 'a' if append else 'w' # Если append == true, то режим "а" и добавляем в конец, иначе пересоздаём файл
-        with open(self._dir_path / self._path_file+'|'+file_name, mode) as file:
-            file.write(data)
     @staticmethod
     def get_format_size(size_bytes: int) -> str:
         """Возвращает размер в читаемом виде: КБ (< 1 МБ), МБ (< 1 ГБ) или ГБ."""
@@ -98,72 +88,87 @@ class FormatDatParser:
         hex_str = ' '.join(f'{b:02x}' for b in data)
         print(f"Первые {len(data)} байт файла:\n{hex_str}")
     # packet = \x40 [длина ответа](2 байта) \x64 [ответ](n байт) [CRC16](2 байта) [Маркер конца посылки](1 байт) [TimeStamp] (8 байт) 1 + 2 + N + 2 + 1 + 8 = 14 + N
-    def read_file(self, show_progress_bar : bool = False) -> List[Tuple[int, bytes]]:
-        records = []
+    def read_file(
+    self,
+    show_progress_bar: bool = False,
+    writer: Optional[FileSplitWriter] = None
+    ) -> List[Tuple[int, bytes]]:
+        """
+        Читает все записи. Если writer передан, записи передаются в него немедленно,
+        и метод возвращает пустой список (или количество записей). Иначе возвращает список.
+        """
+        records = [] if writer is None else None  # если writer, список не нужен
         print(f'Читается файл : {self._path_file}')
-        total_size = os.path.getsize(self.path_file) # Для прогресс бара
-        next_file_threshold = STEP_SIZE
-        sys.stderr.write(f'Процесс : 0% - чтение начато. Установлен рубеж : {FormatDatParser.get_format_size(next_file_threshold)}\n')
-        step_percent, step_file = 5 , 25 # шаги для разделния и проценты
+        total_size = os.path.getsize(self._path_file)
+
+        if show_progress_bar:
+            sys.stderr.write(f'Процесс : 0% - чтение начато. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
+
+        step_percent = 10
         with open(self._path_file, 'rb') as file:
             while True:
                 try:
-                    if show_progress_bar:
-                        current_pos = file.tell()
-                        percent = (current_pos/total_size) * 100 if total_size else 100
-                        if percent >= step_percent: # Вывод процента процесса
-                            step_percent += 5
-                            sys.stderr.write(f'Процесс : {percent:.1f}% : ({current_pos}/{total_size} байт) {FormatDatParser.get_format_size(total_size)} \n')
-                            sys.stderr.flush()
-                        if current_pos >= next_file_threshold : # переход записи в след файл
-                            print(f'Достигнут рубеж {FormatDatParser.get_format_size(next_file_threshold)}.')
-                            next_file_threshold += STEP_SIZE
-
-                    # 1. Ищем стартовый маркер 0x40
+                    # 1. Поиск стартового маркера 0x40
                     while True:
                         byte = file.read(1)
                         if not byte:
-                            sys.stderr.write('Процесс : 100% - чтение завершено. \n')
-                            return records  # EOF
+                            if show_progress_bar:
+                                sys.stderr.write('Процесс : 100% - чтение завершено. EOF\n')
+                            if writer:
+                                writer.close()
+                            return [] if writer else records
                         if byte[0] == self.MARKER_x40:
                             break
-                    # 2. размер (2 байта)
+
+                    # 2. Размер пакета
                     size_bytes = file.read(2)
                     if len(size_bytes) < 2:
-                        break  # неполная запись в конце
+                        break
                     size_packet = struct.unpack('<H', size_bytes)[0]
                     if size_packet <= 0:
                         continue
-
-                    # 3. Читаем и проверяем маркер 0x64
+                    # 3. Маркер 0x64
                     marker = file.read(1)
                     if not marker or marker[0] != self.MARKER_x64:
-                        print("возвращаемся к поиску 0x40")
-                        continue  # возвращаемся к поиску 0x40
+                        continue
 
-                    # 4. Читаем payload
+                    # 4. Payload
                     payload = file.read(size_packet)
                     if len(payload) < size_packet:
-                        print("возвращаемся к поиску 0x40")
                         continue
 
-                    # 5. Читаем CRC16 (2 байта)
-                    crc = file.read(2)
+                    # 5. CRC (пропускаем)
+                    file.read(2)
 
-                    # 6. Читаем и проверяем завершающий маркер 0xA5
+                    # 6. Маркер 0xA5
                     end_marker = file.read(1)
-                    if not end_marker or end_marker != self.MARKER_A5: # не пустой маркер и соответствует шаблону
+                    if not end_marker or end_marker != self.MARKER_A5:
                         continue
 
-                    # 7. Читаем timestamp (8 байт)
+                    # 7. Timestamp
                     ts_bytes = file.read(8)
                     if len(ts_bytes) < 8:
                         continue
                     timestamp = struct.unpack('<q', ts_bytes)[0]
-                    # Запись корректна
-                    records.append((timestamp, payload))
 
-                except (IndexError, struct.error) as e:
-                    # При любой ошибке — продолжаем искать следующий стартовый маркер
+                    # --- Потоковая обработка ---
+                    current_source_pos = file.tell()  # позиция после прочитанной записи
+                    if writer:
+                        writer.write_record(timestamp, payload, current_source_pos)
+                    else:
+                        records.append((timestamp, payload))
+
+                    # Прогресс-бар
+                    if show_progress_bar:
+                        percent = (current_source_pos / total_size) * 100 if total_size else 100
+                        if percent >= step_percent:
+                            sys.stderr.write(
+                                f'Процесс : {percent:.1f}% '
+                                f'({self.get_format_size(current_source_pos)}/'
+                                f'{self.get_format_size(total_size)})\n'
+                            )
+                            step_percent += 5
+
+                except (IndexError, struct.error):
                     continue
         return records
