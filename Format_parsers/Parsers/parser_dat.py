@@ -138,8 +138,7 @@ class FormatDatParser:
                         continue
 
                     # 5. CRC (пропускаем)
-                    file.read(2)
-
+                    crc = file.read(2)
                     # 6. Маркер 0xA5
                     end_marker = file.read(1)
                     if not end_marker or end_marker != self.MARKER_A5:
