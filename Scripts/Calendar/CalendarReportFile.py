@@ -22,7 +22,7 @@ class CalendarReport:
         return self._people.copy()
 
     def _build_schedule(self) -> Dict[int, Person]:
-        """Расписание дежурств: только рабочие дни по производственному календарю."""
+        """Расписание принтера: только рабочие дни по производственному календарю."""
         cal = calendar.monthcalendar(self.year, self.month)
         schedule = {}
         idx = self._start_index
@@ -49,7 +49,7 @@ class CalendarReport:
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Календарь дежурств на {month_name} {self.year}</title>
+    <title>Календарь принтера на {month_name} {self.year}</title>
     <style>
         body {{ font-family: Arial, sans-serif; }}
         .calendar {{ border-collapse: collapse; width: 100%; }}
@@ -62,7 +62,7 @@ class CalendarReport:
     </style>
 </head>
 <body>
-    <h1>Календарь дежурств на {month_name} {self.year}</h1>
+    <h1>Календарь принтера на {month_name} {self.year}</h1>
     <table class="calendar">
         <tr>
             <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
