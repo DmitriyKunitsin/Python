@@ -3,7 +3,7 @@ from Parsers.Writer import FileSplitWriter
 import datetime
 import os
 
-input_file = r'Files_to_read\Solkinskoe_70BIS_2109\bytes_2026-05-15_21-36-54-4835.dat'
+input_file = r'Files_to_read\Solkinskoe_70BIS_2109\bytes_2026-05-15_22-27-50-0979.dat'
 
 def main():
     parser = parser_dat.FormatDatParser(
