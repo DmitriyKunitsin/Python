@@ -23,20 +23,23 @@ class FileSplitWriter:
         filename = f"{self.base_name}.part{self._part_number}.{self.ext}"
         path = os.path.join(self.base_dir, filename)
         self._current_file = open(path, 'w', encoding='utf-8')
-        self._current_file.write("timestamp,payload_length\n")  # заголовок CSV
+        self._current_file.write("timestamp,payload_length\n")
         self._part_number += 1
         print(f"Создан новый файл: {path}")
-    def format_payload(payload:bytes, split_need : bool = False) -> str:
+    def format_payload(self ,payload:bytes, split_need : bool = False) -> str:
         """
         Преобразует payload в hex-строку (байты через запятую).
         Если split_byte задан, перед каждым его вхождением добавляется '\r'.
         """
+        if not split_need:
+            return ','.join(f'{b:02x}' for b in payload)
+        
         hex_parts = []
         
         for b in payload:
             hex_str = f'{b:02x}'
             if split_need and b in valid_split:
-                hex_parts.append(f'\r{hex_str}')
+                hex_parts.append(f"\t{hex_str}")
             else:
                 hex_parts.append(hex_str)
         return ','.join(hex_parts)
@@ -45,23 +48,19 @@ class FileSplitWriter:
         Записывает запись в текущий файл. Если количество прочитанных байт исходного файла
         превышает порог, открывает следующий файл.
         """
-        # Если запись первая или достигнут порог — открыть новый файл
         if self._current_file is None or source_bytes_read >= self._next_threshold:
             self._open_new_file()
-            # Увеличиваем порог для следующего файла
             while self._next_threshold <= source_bytes_read:
                 self._next_threshold += self.bytes_per_file
 
-        # преобразуем байты в строку шестнадцатеричных значений через запятую
-        data_str = ','.join(f'{b:02x}' for b in payload) 
         dt = datetime.datetime(1,1,1) + datetime.timedelta(microseconds=timestamp/10)
         line = json.dumps({
             "datetime":dt.isoformat(),
             "timestamp": timestamp,
             "payload_length": len(payload),
-            "data": data_str
+            "data": self.format_payload(bytes(payload), split_need=True)
         }) + '\n'
-        self._current_file.write(line)
+        self._current_file.write(line.replace(',\\t', '\\t').replace('\\t', '\t'))
         self._current_file.flush()
         self._count_record += 1
     def get_count_record(self):
