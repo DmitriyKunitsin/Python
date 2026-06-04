@@ -7,7 +7,7 @@ from Parsers.Writer import FileSplitWriter
 FILE_FORMAT = ".dat"
 SIZE_MEGABYTE = 1
 STEP_SIZE = SIZE_MEGABYTE * 1024 * 1024 # Порог срабатывания для начала создания нового файла
-STEP_PERCENT = 25
+STEP_PERCENT = 1
 
 class FormatDatParser:
     """Парсер бинарных файлов, записанных методом SaveResponseData."""
