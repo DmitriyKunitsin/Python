@@ -19,7 +19,6 @@ class PacketHeader:
     count: bytes = b'\x00'
     payloadSize: bytes = b'\x00'
 
-    # Декларативное описание структуры (оцените читаемость!)
     _STRUCT = Struct(
         "format" / Byte,
         "deviceId" / Byte,
