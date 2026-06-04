@@ -1,6 +1,9 @@
 import os
 import json
 import datetime
+from typing import Optional
+
+valid_split = {0x20, 0x10, 0x40, 0x51, 0x33}
 
 class FileSplitWriter:
     """Потоковый писатель, разбивающий вывод на файлы по достижению лимита байт исходного файла."""
@@ -23,8 +26,20 @@ class FileSplitWriter:
         self._current_file.write("timestamp,payload_length\n")  # заголовок CSV
         self._part_number += 1
         print(f"Создан новый файл: {path}")
-    def format_payload(payload:bytes, split_byte: Optional[int] = None) -> str:
-        return ""
+    def format_payload(payload:bytes, split_need : bool = False) -> str:
+        """
+        Преобразует payload в hex-строку (байты через запятую).
+        Если split_byte задан, перед каждым его вхождением добавляется '\r'.
+        """
+        hex_parts = []
+        
+        for b in payload:
+            hex_str = f'{b:02x}'
+            if split_need and b in valid_split:
+                hex_parts.append(f'\r{hex_str}')
+            else:
+                hex_parts.append(hex_str)
+        return ','.join(hex_parts)
     def write_record(self, timestamp: int, payload: bytes, source_bytes_read: int):
         """
         Записывает запись в текущий файл. Если количество прочитанных байт исходного файла
