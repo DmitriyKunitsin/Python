@@ -105,6 +105,7 @@ class FormatDatParser:
             sys.stderr.write(f'Процесс : 0% - чтение начато. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
 
         step_percent = 0
+        test = []
         with open(self._path_file, 'rb') as file:
             while True:
                 try:
@@ -118,34 +119,45 @@ class FormatDatParser:
                                 writer.close()
                             return records
                         if byte[0] == self.MARKER_x40:
+                            test.clear()
                             break
-
+                    test.append(byte[0])
                     # 2. Размер пакета
                     size_bytes = file.read(2)
+                    test.append(size_bytes)
                     if len(size_bytes) < 2:
                         break
                     size_packet = struct.unpack('<H', size_bytes)[0]
+                    test.append(size_packet)
                     if size_packet <= 0:
                         continue
                     # 3. Маркер 0x64
                     marker = file.read(1)
+                    test.append(marker)
                     if not marker or marker[0] != self.MARKER_x64:
                         continue
 
                     # 4. Payload
                     payload = file.read(size_packet)
+                    test.append(payload)
                     if len(payload) < size_packet:
                         continue
 
                     # 5. CRC (пропускаем)
                     crc = file.read(2)
+                    test.append(crc)
                     # 6. Маркер 0xA5
                     end_marker = file.read(1)
+                    
                     if not end_marker or end_marker != self.MARKER_A5:
                         continue
-
+                    test.append(end_marker)
                     # 7. Timestamp
                     ts_bytes = file.read(8)
+                    test.append(ts_bytes)
+                    #print(','.join(str(f'{x}') for x in test))
+                    #print('\n')
+                    #continue
                     if len(ts_bytes) < 8:
                         continue
                     timestamp = struct.unpack('<q', ts_bytes)[0]
@@ -154,7 +166,8 @@ class FormatDatParser:
                     if writer:
                         writer.write_record(timestamp, payload, current_source_pos)
                     records.append((timestamp, payload))
-
+                    # if len(records) > 0:
+                    #     break
                     # Прогресс-бар
                     if show_progress_bar:
                         percent = (current_source_pos / total_size) * 100 if total_size else 100
