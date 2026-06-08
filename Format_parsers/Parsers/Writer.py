@@ -87,23 +87,34 @@ class FileSplitWriter:
         """
         pars_data = struct.unpack(f'=BBLH',data)
         token,dummy,time,SubSecond = pars_data
-        print('='*80)
-        print('Команда 0х40 :')
-        print(f' token : {token}')
-        print(f' dummy : {dummy}')
-        print(f' time : {time}')
-        print(f'SubSecond : {SubSecond}')
-        print('='*80)
+        line = " FastSync : " + json.dumps(
+            {
+                "token": token,
+                "dummy" : dummy,
+                "time" : time,
+                "subsecond" : SubSecond
+            }
+        )
+        return line
     def packet_parse_0x51(self, data):
         """
         Парсер пакета Калибровки датчика давления
-        float ADC2Bridge[4]		A0, AT, B0, BT для формулы ADC24*(A0+AT*T)+(B0+BT*T) -> Bridge [В/В]
-        float Bridge2Press[4]		A0, AT, B0, BT для формулы Bridge*(A0+AT*T)+(B0+BT*T) -> Press [Па]
-        float Temp			температура
-        float Press2Units		коэффициент преобразования давления [Па]->[PUnits]
+        float ADC2Bridge[4]		A0, AT, B0, BT для формулы ADC24*(A0+AT*T)+(B0+BT*T) -> Bridge [В/В] = 4 * 4 = 16
+        float Bridge2Press[4]		A0, AT, B0, BT для формулы Bridge*(A0+AT*T)+(B0+BT*T) -> Press [Па] = 4 * 4 = 16
+        float Temp			температура = 4 
+        float Press2Units		коэффициент преобразования давления [Па]->[PUnits] = 4
+        =16 + 16 + 4 + 4 = 40 ,байт
         """
-        pars_data = struct.unpack(f'=ffff',data)
-        print(f'Вызван метод packet_parse_0x51 : {data} | {pars_data}')
+        pars_data = struct.unpack(f'<10f',data)
+        A0_ADC, AT_ADC, B0_ADC, BT_ADC, A0_Press, AT_Press, B0_Press, BT_Press, Temp, Press2Units = pars_data
+
+        log_line = "PressureCalibration : " + json.dumps({
+            "ADC2Bridge": {"A0": A0_ADC, "AT": AT_ADC, "B0": B0_ADC, "BT": BT_ADC},
+            "Bridge2Press": {"A0": A0_Press, "AT": AT_Press, "B0": B0_Press, "BT": BT_Press},
+            "Temp": Temp,
+            "Press2Units": Press2Units
+        })
+        return log_line
     def handle_format_while(self, packet_format, data) -> str:
         """по формату пакета вызывает нужный обработчик
             return : возвращает разобранный пакет
@@ -149,7 +160,7 @@ class FileSplitWriter:
             else:
                 print(f"Неизвестный формат: {hex_format} ({packet_format})")
         except Exception as err:
-            print(f'Произошла ошибка в методе  {method_name} : {err} : искачал формат {hex_format} | len : {len(body)} |{",".join(str(f'{x:02x}') for x in body)}')
+            print(f'Произошла ошибка в методе  {method_name} : {err} : искал формат {hex_format} | header = {bytes(header).hex(':')} | body_size = {body_size} | len : {len(body)} |{",".join(str(f'{x:02x}') for x in body)}')
     def get_size_packet(self, header : bytes) -> int:
         #dev_id = header[0]
         token = header[0]
