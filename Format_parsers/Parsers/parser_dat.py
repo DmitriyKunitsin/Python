@@ -8,6 +8,8 @@ FILE_FORMAT = ".dat"
 SIZE_MEGABYTE = 1
 STEP_SIZE = SIZE_MEGABYTE * 1024 * 1024 # Порог срабатывания для начала создания нового файла
 STEP_PERCENT = 1
+START_SEQUENCE = b'\x40\x00\x00\x64\x00\x00'
+
 
 class FormatDatParser:
     """Парсер бинарных файлов, записанных методом SaveResponseData."""
@@ -21,11 +23,18 @@ class FormatDatParser:
     CRC16_LEN = 2
     LEN_FIELD_SIZE = 2             # размер поля длины (ushort, 2 байта)
 
+    START_SEQUENCE = b'\x40\x00\x00\x64\x00\x00' # сигнатура начала посылки
+    OFFSET_SEQUENCE = 6 # сдвиг на длину сигнатуры
+    BLOCK_READ_SIZE = 1024 * 1024 # Блок данных чтения за раз
+    
+    
+    
     def __init__(self, title: str, path_file: str):
         self._file_format = FILE_FORMAT
         self._title = ""
         self._path_file = ""
         self._dir_path = os.path.dirname(path_file)
+        self._pos_len_packet_dict = dict()
         
         self.title = title
         self.path_file = path_file
@@ -88,6 +97,58 @@ class FormatDatParser:
             data = f.read(num_bytes)
         hex_str = ' '.join(f'{b:02x}' for b in data)
         print(f"Первые {len(data)} байт файла:\n{hex_str}")
+    
+    def read_block_file(self, 
+                        show_progress_bar: bool = False, 
+                        writer: Optional[FileSplitWriter] = None) -> dict:
+        """Метод читает весь файл и возвращает словарь с {'index' : 'lenght'}
+            index - индекс начала пакета, после сигнатуры
+            
+        """
+        print(f'Читается файл : {self._path_file}')
+        total_size = os.path.getsize(self._path_file)
+        if show_progress_bar:
+            sys.stderr.write(f'Процесс : 0% - чтение начато. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
+        overlap = len(START_SEQUENCE) - 1
+        with open(self._path_file, 'rb') as file:
+            offset = 0
+            prev_tail = b''
+            while True:
+                block = file.read(self.BLOCK_READ_SIZE)
+                if not block:
+                    break
+                search_data = prev_tail + block
+                pos = 0
+                while True:
+                    pos = search_data.find(START_SEQUENCE, pos)
+                    if pos == -1: # Если совпадений не найдено с pos 
+                        break
+                    abs_pos = offset + pos + self.OFFSET_SEQUENCE - len(prev_tail)
+                    
+                    #### Чтение длины ответа
+                    # 1. Сохраняю текущий указатель в файле
+                    temp_pos = file.tell()
+                    # 2. Перемещаюсь по нужному указателю
+                    file.seek(abs_pos)
+                    # 3. Получаю хедер посылки от БИ
+                    header = file.read(4)
+                    # 4. Проверка, что валидно всё
+                    if len(header) == 4 and header[0] == 0x40 and header[3] == 0x64:
+                    # 5. Получаю размер пакета в ответе
+                        payload_len = writer.get_size_packet(header)
+                        self._pos_len_packet_dict[abs_pos] = payload_len
+                    # 6. Возвращаю указатель туда где взял
+                    file.seek(temp_pos)                    
+                    ### Конец
+                    pos += 1
+                offset += len(block)
+                if len(block) >= overlap:
+                    prev_tail = block[-overlap:]
+                else:
+                    prev_tail = block
+            
+        return self._pos_len_packet_dict
+    
     def read_file(
     self,
     show_progress_bar: bool = False,
@@ -104,6 +165,9 @@ class FormatDatParser:
         if show_progress_bar:
             sys.stderr.write(f'Процесс : 0% - чтение начато. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
 
+        cnt_error_BUG = 0
+        valid_sequence = False
+        cnt_byte_in_packet = 0
         step_percent = 0
         test = []
         with open(self._path_file, 'rb') as file:
@@ -112,6 +176,7 @@ class FormatDatParser:
                     # 1. Поиск стартового маркера 0x40
                     while True:
                         byte = file.read(1)
+                        cnt_byte_in_packet+=1
                         if not byte:
                             if show_progress_bar:
                                 sys.stderr.write('Процесс : 100% - чтение завершено. EOF\n')
@@ -119,8 +184,25 @@ class FormatDatParser:
                                 writer.close()
                             return records
                         if byte[0] == self.MARKER_x40:
-                            test.clear()
+                            # while True:
+                            validation = file.read(5)
+                            byte+= validation
+                            cnt_byte_in_packet+=5
+                            pos = byte.find(START_SEQUENCE)
+                            if pos != -1:
+                                print('-'*80)
+                                print(f"Найдена последовательность на позиции {pos}")
+                                print(':'.join(f'{b:02x}' for b in byte) + f' \t size packet = {struct.unpack('<H', byte[1:3])[0]}' + f' \t байт между = {cnt_byte_in_packet}')
+                                print('-'*80)
+                                valid_sequence = True
+                            else:
+                                valid_sequence = False
+                                print(f"НЕ найдена последовательность на позиции {pos}")
+                            cnt_byte_in_packet=0
                             break
+                        cnt_error_BUG += 1
+                    if not valid_sequence:
+                        continue
                     test.append(byte[0])
                     # 2. Размер пакета
                     size_bytes = file.read(2)
@@ -163,6 +245,7 @@ class FormatDatParser:
                     timestamp = struct.unpack('<q', ts_bytes)[0]
 
                     current_source_pos = file.tell()  # позиция после прочитанной записи
+                    continue
                     if writer:
                         writer.write_record(timestamp, payload, current_source_pos)
                     records.append((timestamp, payload))
