@@ -24,7 +24,7 @@ class FormatDatParser:
     LEN_FIELD_SIZE = 2             # размер поля длины (ushort, 2 байта)
 
     START_SEQUENCE = b'\x40\x00\x00\x64\x00\x00' # сигнатура начала посылки
-    OFFSET_SEQUENCE = 6 # сдвиг на длину сигнатуры
+    OFFSET_SEQUENCE = 4 # сдвиг на длину сигнатуры до начала ответа
     BLOCK_READ_SIZE = 24 * 1 # Блок данных чтения за раз
     
     
@@ -103,17 +103,26 @@ class FormatDatParser:
         hex_str = ' '.join(f'{b:02x}' for b in data)
         print(f"Первые {len(data)} байт файла:\n{hex_str}")
     
-    def read_block_file(self, 
-                        show_progress_bar: bool = False, 
-                        writer: Optional[FileSplitWriter] = None) -> dict:
-        """Метод читает весь файл и возвращает словарь с {'index' : 'lenght'}
-            index - индекс начала пакета, после сигнатуры
-            
+    def build_packet_index(self, 
+            show_progress_bar: bool = False,
+            writer: Optional[FileSplitWriter] = None) -> dict:
+        """
+        Сканирует файл и строит индекс пакетов.
+
+        Проходит по всему бинарному файлу, находит все сигнатуры START_SEQUENCE,
+        для каждой извлекает длину полезной нагрузки и сохраняет в словарь.
+
+        Returns:
+            dict: {смещение_после_сигнатуры (int): длина_payload (int)}
+
+        Note:
+            Смещение отсчитывается от начала служебного заголовка (сразу после START_SEQUENCE).
+            Словарь кэшируется в self._pos_len_packet_dict и доступен через свойство pos_len_packet_dict.
         """
         print(f'Читается файл : {self._path_file}')
         total_size = os.path.getsize(self._path_file)
         if show_progress_bar:
-            sys.stderr.write(f'Процесс : 0% - чтение начато. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
+            sys.stderr.write(f'Процесс : 0% - Разбора на индексы начат. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
         overlap = len(START_SEQUENCE) - 1
         with open(self._path_file, 'rb') as file:
             offset = 0
@@ -143,7 +152,7 @@ class FormatDatParser:
                     if len(header) == 4 and header[0] == 0x40 and header[3] == 0x64:
                     # 5. Получаю размер пакета в ответе
                         payload_len = writer.get_size_packet(header)
-                        self._pos_len_packet_dict[abs_pos] = payload_len
+                        self._pos_len_packet_dict[abs_pos+self.OFFSET_SEQUENCE] = payload_len
                     # 6. Возвращаю указатель туда где взял
                     file.seek(temp_pos)                    
                     ### Конец
@@ -154,6 +163,40 @@ class FormatDatParser:
                 else:
                     prev_tail = block
         return self._pos_len_packet_dict
+    
+    def parse_packets_by_index(self, 
+                           show_progress_bar: bool = False,
+                           writer: Optional[FileSplitWriter] = None) -> List[dict]:
+        """
+        Разбирает пакеты, используя ранее построенный индекс.
+
+        Для каждой записи из self._pos_len_packet_dict перемещается по файлу,
+        читает заголовок и полезную нагрузку, собирает структурированные данные.
+
+        Args:
+            show_progress_bar: Включать ли отображение прогресса.
+            writer: Опциональный потоковый писатель для сохранения результатов на лету.
+
+        Returns:
+            List[dict]: Список разобранных пакетов. Каждый пакет — словарь с ключами:
+                - 'offset': смещение в файле
+                - 'timestamp': datetime
+                - 'payload': bytes
+                - 'length': int
+
+        Raises:
+            RuntimeError: Если индекс не был построен (словарь пуст).
+        """
+        records = [] 
+        if show_progress_bar:
+            sys.stderr.write(f'Процесс : 0% - чтение начато. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
+        for index, lenght in self._pos_len_packet_dict.items():
+            with open(self._path_file, 'rb') as file:
+                file.seek(index)
+                
+                #if writer:
+                        #writer.write_record(timestamp, payload, current_source_pos)
+                    #records.append((timestamp, payload))
     
     def read_file(
     self,
