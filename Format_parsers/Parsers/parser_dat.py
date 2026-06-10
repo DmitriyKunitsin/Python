@@ -25,7 +25,7 @@ class FormatDatParser:
 
     START_SEQUENCE = b'\x40\x00\x00\x64\x00\x00' # сигнатура начала посылки
     OFFSET_SEQUENCE = 6 # сдвиг на длину сигнатуры
-    BLOCK_READ_SIZE = 1024 * 1024 # Блок данных чтения за раз
+    BLOCK_READ_SIZE = 24 * 1 # Блок данных чтения за раз
     
     
     
@@ -113,10 +113,12 @@ class FormatDatParser:
         with open(self._path_file, 'rb') as file:
             offset = 0
             prev_tail = b''
+            
             while True:
                 block = file.read(self.BLOCK_READ_SIZE)
                 if not block:
                     break
+                cnt_block+=1
                 search_data = prev_tail + block
                 pos = 0
                 while True:
@@ -146,7 +148,6 @@ class FormatDatParser:
                     prev_tail = block[-overlap:]
                 else:
                     prev_tail = block
-            
         return self._pos_len_packet_dict
     
     def read_file(

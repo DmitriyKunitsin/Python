@@ -165,7 +165,7 @@ class FileSplitWriter:
         #dev_id = header[0]
         token = header[0]
         number_digit_first = header[1:3]
-        return header[3] 
+        return struct.unpack('<H', number_digit_first)[0]
     def pars_datetime(self, timestamp_bytes) -> datetime:
         year = int.from_bytes(timestamp_bytes[0:1], byteorder='little') + 2000
         month, day, hour, minute, second, subsecond = timestamp_bytes[1] , timestamp_bytes[2], timestamp_bytes[3], timestamp_bytes[4], timestamp_bytes[5], timestamp_bytes[6]
