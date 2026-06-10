@@ -120,7 +120,6 @@ class FormatDatParser:
             Словарь кэшируется в self._pos_len_packet_dict и доступен через свойство pos_len_packet_dict.
         """
         print(f'Читается файл : {self._path_file}')
-        total_size = os.path.getsize(self._path_file)
         if show_progress_bar:
             sys.stderr.write(f'Процесс : 0% - Разбора на индексы начат. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
         overlap = len(START_SEQUENCE) - 1
@@ -188,15 +187,35 @@ class FormatDatParser:
             RuntimeError: Если индекс не был построен (словарь пуст).
         """
         records = [] 
+        total_size = os.path.getsize(self._path_file)
         if show_progress_bar:
             sys.stderr.write(f'Процесс : 0% - чтение начато. Рубеж: {self.get_format_size(STEP_SIZE)}\n')
         for index, lenght in self._pos_len_packet_dict.items():
             with open(self._path_file, 'rb') as file:
-                file.seek(index)
-                
-                #if writer:
-                        #writer.write_record(timestamp, payload, current_source_pos)
-                    #records.append((timestamp, payload))
+                try :
+                    file.seek(index)
+                    payload = file.read(lenght)
+                    crc = file.read(2)
+                    end_marker = file.read(1)
+                    ts_bytes = file.read(8)
+                    timestamp = struct.unpack('<q', ts_bytes)[0]
+                    current_source_pos = file.tell()
+                    if writer:
+                        writer.write_record(timestamp, payload, current_source_pos)
+                    records.append((timestamp, payload))
+                    if show_progress_bar:
+                            percent = (current_source_pos / total_size) * 100 if total_size else 100
+                            if percent >= step_percent:
+                                sys.stderr.write(
+                                    f'Процесс : {percent:.1f}% '
+                                    f'({self.get_format_size(current_source_pos)}/'
+                                    f'{self.get_format_size(total_size)})\n'
+                                )
+                                step_percent += STEP_PERCENT
+                except (IndexError, struct.error):
+                    continue
+        return records
+                    
     
     def read_file(
     self,
