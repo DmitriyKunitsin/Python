@@ -38,7 +38,12 @@ class FormatDatParser:
         
         self.title = title
         self.path_file = path_file
-        
+    
+    @property
+    def pos_len_packet_dict(self) -> dict:
+        """Возвращает копию словаря (смещение : длина пакета)"""
+        return self._pos_len_packet_dict
+    
     @property
     def dir_path(self) -> str:
         return self._dir_path
